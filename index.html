@@ -404,7 +404,7 @@ function holeSub(i){const [n]=COURSES[st.course].nines[i<9?0:1];return n?`${n} $
 const fill=v=>Array(MAXP).fill(v);
 const P=()=>[...Array(st.n).keys()];           // 이번 라운드 참가자 인덱스
 function blankHole(par){return{par,s:fill(null),t:fill(false),ob:fill(0),bk:fill(0),hz:fill(0),tp:fill(0),long:-1,near:-1,pair:0,joker:-1,c0:0,sticks:null,left:null}}
-function blank(course=DEF_COURSE){return{n:DEF_N,names:[...DEF_NAMES],unit:1000,bonus:5000,fine:2000,potMode:'pot',fineRule:'all',fineCap:0,mode:'stroke',vegasFlip:true,active:false,stakes:fill(45000),prizeMode:'even',prizes:Array(18).fill(0),cur:0,course,holes:coursePars(course).map(blankHole)}}
+function blank(course=DEF_COURSE){return{n:DEF_N,names:[...DEF_NAMES],unit:1000,bonus:5000,fine:2000,potMode:'pot',fineRule:'all',fineCap:0,oecdPct:60,oecdAmt:20000,mode:'stroke',vegasFlip:true,active:false,stakes:fill(45000),prizeMode:'even',prizes:Array(18).fill(0),cur:0,course,holes:coursePars(course).map(blankHole)}}
 const touched=h=>h.t.some(Boolean);
 // 코스 적용: force면 모든 홀 파 변경, 아니면 스코어를 직접 입력한 홀은 건드리지 않음. 기본값 스코어는 새 파를 따라감
 function applyCourse(id,force){
@@ -442,7 +442,7 @@ function normalize(raw){
     n,active,
     names:arr(raw.names,(v,k)=>(typeof v==='string'&&v.trim())||DEF_NAMES[k]),
     unit:num(raw.unit,d.unit), bonus:num(raw.bonus,d.bonus),
-    fine:num(raw.fine,d.fine), fineRule:raw.fineRule==='oecd'?'oecd':'all', fineCap:num(raw.fineCap,0), potMode:raw.potMode==='each'?'each':'pot', mode:MODES[raw.mode]?raw.mode:'stroke', vegasFlip:raw.vegasFlip!==false, stakes:arr(raw.stakes,(v,k)=>num(v,num(raw.stake,d.stakes[k]))),
+    fine:num(raw.fine,d.fine), fineRule:raw.fineRule==='oecd'?'oecd':'all', fineCap:num(raw.fineCap,0), oecdPct:[50,60,70,80,100].includes(+raw.oecdPct)?+raw.oecdPct:60, oecdAmt:num(raw.oecdAmt,20000), potMode:['each','prize'].includes(raw.potMode)?raw.potMode:'pot', mode:MODES[raw.mode]?raw.mode:'stroke', vegasFlip:raw.vegasFlip!==false, stakes:arr(raw.stakes,(v,k)=>num(v,num(raw.stake,d.stakes[k]))),
     prizeMode:raw.prizeMode==='manual'?'manual':'even',
     prizes:[...Array(18).keys()].map(i=>num(Array.isArray(raw.prizes)?raw.prizes[i]:undefined,d.prizes[i])),
     cur:Number.isInteger(raw.cur)&&raw.cur>=0&&raw.cur<18?raw.cur:0,
@@ -526,6 +526,8 @@ const isDraw=()=>st.mode==='draw'&&st.n===4;     // 조커가 있는 뽑기
 const isVegas=()=>st.mode==='vegas'&&st.n===4;
 const isSkins=()=>st.mode==='skins';
 const isOECD=()=>st.fineRule==='oecd';
+// 벌금 가는 곳: pot=공금, prize=판돈(다음 홀 상금에 보탬, 판돈 방식만), each=나머지에게 각각
+const fineDest=()=>st.potMode==='prize'&&!usePot()?'pot':st.potMode;
 function rnd(m){try{return crypto.getRandomValues(new Uint32Array(1))[0]%m;}catch(e){return Math.floor(Math.random()*m);}}
 // 스틱 5개(빨강2·초록2·조커1) 중 4명이 하나씩 뽑는다. 조커를 뽑은 사람은 한 명 모자란 색 편에 들어가고 타수는 보기로 계산.
 // 조커가 남으면(아무도 안 뽑으면) 색깔대로 편.
@@ -573,9 +575,12 @@ function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;',
 function compute(){
   const n=st.n,ks=P();
   const rows=[];let mult=1,broken=false,firstGap=-1,carry=0;
-  const total=fill(0).slice(0,n), potBy=fill(0).slice(0,n), prizeTot=fill(0).slice(0,n), sideTot=fill(0).slice(0,n);
-  // OECD 회원: 뽑기는 받은 상금이 낸 판돈 이상, 스트로크는 지금까지 딴 돈이 플러스(벌금 제외)
-  const memberOf=k=>usePot()?(st.stakes[k]>0&&prizeTot[k]>=st.stakes[k]):(total[k]+potBy[k]>0);
+  const total=fill(0).slice(0,n), potBy=fill(0).slice(0,n), prizeTot=fill(0).slice(0,n), sideTot=fill(0).slice(0,n), finePaid=fill(0).slice(0,n);
+  // OECD 회원(일반적인 룰): 판돈 방식은 받은 상금에서 낸 벌금을 뺀 금액이 낸 판돈의 N%(보통 60%) 이상,
+  // 타당 방식(스트로크·라스베가스)은 지금까지 딴 돈(벌금 포함)이 기준 금액 이상. 벌금을 내서 기준 아래로 떨어지면 자동 탈퇴.
+  const holdOf=k=>usePot()?prizeTot[k]-finePaid[k]:total[k];
+  const thrOf=k=>usePot()?st.stakes[k]*st.oecdPct/100:st.oecdAmt;
+  const memberOf=k=>holdOf(k)>=thrOf(k)&&thrOf(k)>0;
   st.holes.forEach((h,i)=>{
     const done=ks.every(k=>h.s[k]!=null)&&(!isTeam()||h.pair>0);
     const r={i,mult:broken?null:mult,done,counted:false,half:!done&&ks.some(k=>h.s[k]!=null)};
@@ -624,7 +629,12 @@ function compute(){
     const fc=ks.map(k=>!r.member[k]?0:h.ob[k]+h.bk[k]+h.hz[k]+(oecd?h.tp[k]+(h.s[k]>=h.par+3?1:0):0));
     const fa=fc.map(c=>{const v=c*st.fine;return st.fineCap>0?Math.min(v,st.fineCap):v;}), FA=fa.reduce((a,b)=>a+b,0);
     r.fc=fc;r.fa=fa;
-    r.fine=ks.map(k=>st.potMode==='pot'?-fa[k]:FA-n*fa[k]);
+    const dest=fineDest();
+    r.fine=ks.map(k=>dest==='each'?FA-n*fa[k]:-fa[k]);
+    // 판돈으로 간 벌금은 다음 홀 상금에 보탠다 (마지막 홀 벌금은 공금으로)
+    const toPrize=dest==='prize'&&i<17;
+    if(toPrize)carry+=FA;
+    r.finePrize=toPrize?FA:0;
     r.net=ks.map(k=>r.stroke[k]+r.bir[k]+r.lng[k]+r.nr[k]+r.fine[k]);
     const why=[];
     ks.forEach(k=>{
@@ -636,13 +646,15 @@ function compute(){
     r.why=why;r.next=next;r.counted=true;
     ks.forEach(k=>{
       total[k]+=r.net[k];
-      if(st.potMode==='pot')potBy[k]+=fa[k];
+      if(dest==='pot'||(dest==='prize'&&!toPrize))potBy[k]+=fa[k];
       if(r.prize)prizeTot[k]+=r.prize[k];
-      sideTot[k]+=r.bir[k]+r.lng[k]+r.nr[k]+(st.potMode==='pot'?0:r.fine[k]);
+      finePaid[k]+=fa[k];
+      sideTot[k]+=r.bir[k]+r.lng[k]+r.nr[k]+(dest==='each'?r.fine[k]:0);
     });r.cum=[...total];
     mult=next;rows.push(r);
   });
-  return{rows,total,potBy,prizeTot,sideTot,carry,firstGap,memberNow:ks.map(k=>isOECD()&&memberOf(k))};
+  return{rows,total,potBy,prizeTot,sideTot,carry,firstGap,memberNow:ks.map(k=>isOECD()&&memberOf(k)),
+    oecdHold:ks.map(holdOf),oecdThr:ks.map(thrOf)};
 }
 // 최소 송금 목록: 많이 잃은 사람이 많이 딴 사람에게부터
 function transfers(total){
@@ -690,7 +702,7 @@ function render(){
   disarm();
   const fx=document.querySelector('details.fix');if(fx)fixOpen=fx.open;
   if(fillDefault(st.holes[st.cur]))save();
-  const {rows,total,potBy,prizeTot,sideTot,carry,firstGap,memberNow}=compute();
+  const {rows,total,potBy,prizeTot,sideTot,carry,firstGap,memberNow,oecdHold,oecdThr}=compute();
   const N=st.names,n=st.n,ks=P(),c=st.cur,h=st.holes[c],r=rows[c];
   const mem=r.counted?r.member:memberNow;
   const doneCnt=rows.filter(x=>x.counted).length;
@@ -763,7 +775,7 @@ function render(){
       if(r.prize){if(r.prize[k])parts.push((r.skinW===k?'스킨 ':'상금 ')+sgn(r.prize[k]));if(r.contrib[k])parts.push('판돈 '+sgn(-r.contrib[k]));}
       else if(r.stroke[k])parts.push('타수 '+sgn(r.stroke[k]));
       if(bonus)parts.push('보너스 '+sgn(bonus));
-      if(r.fine[k])parts.push((st.potMode==='pot'?'벌금(공금) ':'벌금 ')+sgn(r.fine[k]));
+      if(r.fine[k])parts.push(({pot:'벌금(공금) ',prize:'벌금(판돈) ',each:'벌금 '})[fineDest()]+sgn(r.fine[k]));
       return `<div class="line"><span class="who ell">${esc(N[k])}${parts.length>1||bonus||r.fine[k]?`<small>${parts.join(' · ')}</small>`:''}</span><span class="num ${cls(r.net[k])}">${sgn(r.net[k])}</span></div>`;
     }).join('');
     let head='';
@@ -833,6 +845,11 @@ function render(){
 
   <h2>정산</h2>
   <div class="settle">${settle}${pot}</div>
+  ${isOECD()?`<h2>OECD 현황</h2>
+  <div class="settle">${ks.map(k=>`<div class="row"><span class="ell">${esc(N[k])} ${memberNow[k]?'<i class="tm oe">OECD</i>':''}
+      <small class="inl">${usePot()?'상금−벌금':'딴 돈'} ${sgn(oecdHold[k])} / 기준 ${won(oecdThr[k])}</small></span>
+      <b class="num">${memberNow[k]?'가입':`${won(Math.max(0,oecdThr[k]-oecdHold[k]))} 남음`}</b></div>`).join('')}
+    <div class="empty" style="font-size:12px">가입한 사람만 OB·벙커·해저드·3퍼트·트리플보기 이상에 벌금을 냅니다. 다음 홀부터 적용.</div></div>`:''}
 
   <h2>스코어카드</h2>
   <div class="tbl"><table>
@@ -972,15 +989,19 @@ function renderSettings(){
       <div class="two">
         <label>벌금 (1번당)<input id="fine" type="number" inputmode="numeric" min="0" step="1000" value="${st.fine}"></label>
         <label>벌금 내는 곳
-          <select id="potMode"><option value="pot" ${st.potMode==='pot'?'selected':''}>공금 적립 (캐디피 등)</option><option value="each" ${st.potMode==='each'?'selected':''}>나머지에게 각각</option></select>
+          <select id="potMode"><option value="pot" ${fineDest()==='pot'?'selected':''}>공금 적립 (캐디피 등)</option>${pot?`<option value="prize" ${fineDest()==='prize'?'selected':''}>판돈 (다음 홀 상금에 보탬)</option>`:''}<option value="each" ${fineDest()==='each'?'selected':''}>나머지에게 각각</option></select>
         </label>
       </div>
+      ${isOECD()?(pot
+        ?`<label>OECD 가입 기준 (받은 상금 − 낸 벌금)
+            <select id="oecdPct">${[50,60,70,80,100].map(v=>`<option value="${v}" ${st.oecdPct===v?'selected':''}>낸 판돈의 ${v}% 이상${v===60?' (보통)':v===100?' (본전)':''}</option>`).join('')}</select></label>`
+        :`<label>OECD 가입 기준 (지금까지 딴 돈)<input id="oecdAmt" type="number" inputmode="numeric" min="0" step="1000" value="${st.oecdAmt}"></label>`):''}
       <details class="rulebox"><summary>규칙 자세히 보기</summary>
       <p class="rules">
         ${MODE_RULES[st.mode]()}<br>
         홀마다 더블파(파×2)가 최대 타수입니다.<br>
         ${isOECD()
-          ?`OECD 룰: 본전 이상 딴 사람(${pot?'받은 상금이 낸 판돈 이상':'지금까지 딴 돈이 플러스'})만 OECD 회원이 되어 OB·벙커·해저드·3퍼트·트리플보기 이상 1번마다 벌금을 냅니다. 회원이 아니면 벌금이 없습니다. 회원 여부는 홀마다 그 홀 시작 시점 기준으로 다시 정해집니다.`
+          ?`OECD 룰: 많이 딴 사람이 판을 독식하지 못하게 하는 룰입니다. ${pot?`받은 상금에서 낸 벌금을 뺀 금액이 낸 판돈의 ${st.oecdPct}% 이상`:`지금까지 딴 돈이 ${won(st.oecdAmt)} 이상`}이 되면 OECD에 가입하고, 그 다음 홀부터 OB·벙커·해저드·3퍼트·트리플보기 이상(일명 "오빠삼삼해") 1번마다 벌금을 냅니다. 가입하지 않은 사람은 벌금이 없습니다. 벌금을 내서 기준 아래로 떨어지면 자동으로 탈퇴합니다.`
           :`OB·벙커·해저드는 1번마다 벌금을 냅니다(배수 없음).`} 같은 홀에서 여러 번이면 버튼을 다시 눌러 횟수를 올립니다.${st.fineCap>0?` 한 홀 벌금은 최대 ${won(st.fineCap)}입니다.`:''}<br>
         버디(이글 포함), 롱기, 니어는 배수와 상관없이 나머지 사람이 각각 보너스 금액을 냅니다.
       </p></details>
@@ -1012,8 +1033,10 @@ function renderSettings(){
   bind('bonus','input',v=>st.bonus=Math.max(0,Math.round(+v)||0),el=>{el.value=st.bonus;});
   bind('fine','input',v=>st.fine=Math.max(0,Math.round(+v)||0),el=>{el.value=st.fine;});
   bind('fineCap','input',v=>st.fineCap=Math.max(0,Math.round(+v)||0),el=>{el.value=st.fineCap||'';});
-  bind('fineRule','change',v=>st.fineRule=v==='oecd'?'oecd':'all',()=>renderSettings());
-  bind('potMode','change',v=>st.potMode=v==='each'?'each':'pot');
+  bind('fineRule','change',v=>{st.fineRule=v==='oecd'?'oecd':'all';if(st.fineRule==='oecd'&&!st.fineCap)st.fineCap=st.fine*2;},()=>renderSettings());
+  bind('potMode','change',v=>st.potMode=['each','prize'].includes(v)?v:'pot');
+  bind('oecdPct','change',v=>st.oecdPct=+v);
+  bind('oecdAmt','input',v=>st.oecdAmt=Math.max(0,Math.round(+v)||0),el=>{el.value=st.oecdAmt;});
   bind('course','change',v=>applyCourse(v,true));
   bind('n','change',v=>{st.n=+v;},()=>renderSettings());
 }
@@ -1146,7 +1169,7 @@ function renderHist(){
 }
 // 새 라운드 준비: 이름·금액·코스 같은 설정은 이어 쓰고 스코어만 새로
 function freshRound(mode){
-  const keep={names:[...st.names],unit:st.unit,bonus:st.bonus,fine:st.fine,potMode:st.potMode,fineRule:st.fineRule,fineCap:st.fineCap,
+  const keep={names:[...st.names],unit:st.unit,bonus:st.bonus,fine:st.fine,potMode:st.potMode,fineRule:st.fineRule,fineCap:st.fineCap,oecdPct:st.oecdPct,oecdAmt:st.oecdAmt,
     stakes:[...st.stakes],prizeMode:st.prizeMode,prizes:[...st.prizes],vegasFlip:st.vegasFlip,n:st.n};
   st=blank(st.course);Object.assign(st,keep);
   st.mode=mode;const m=MODES[mode];st.n=Math.min(m.max,Math.max(m.min,st.n));st.active=false;
