@@ -636,17 +636,10 @@ function compute(){
       r.contrib=ks.map(k=>prizeOf(i)*shareOf(k));
       r.stroke=ks.map(k=>r.prize[k]-r.contrib[k]);
     }else if(isVegas()){
-      // 라스베가스: 편 두 사람 점수를 작은 수-큰 수로 붙여 두 자리 숫자(4,5 -> 45).
-      // 상대 편에 버디가 나오면 내 숫자를 뒤집는다(큰 수-작은 수). 숫자 차이 × 타당 × 배수를 진 편 각자가 이긴 편 각자에게.
-      const sc=[[],[]];ks.forEach(k=>sc[teamOf(h,k)].push(h.s[k]));
-      const bt=[0,1].map(t=>ks.some(k=>teamOf(h,k)===t&&h.s[k]<=h.par-1));
-      // 일반 룰: 한 사람이 10타 이상이면 큰 수를 앞에(5와 11 -> 115). 뒤집기도 큰 수를 앞에.
-      const num=(a,flip)=>{const [x,y]=[...a].sort((p,q)=>p-q);return flip||y>=10?y*10+x:x*10+y;};
-      // 양쪽 편 모두 버디가 나오면 뒤집기는 서로 상쇄
-      const both=bt[0]&&bt[1];
-      const fl=[st.vegasFlip&&bt[1]&&!both,st.vegasFlip&&bt[0]&&!both];
-      const V=[num(sc[0],fl[0]),num(sc[1],fl[1])], D=V[1]-V[0];
-      r.vnum=V;r.vflip=fl;r.win=D>0?0:D<0?1:-1;
+      // 라스베가스(한국식): 1·4등 vs 2·3등 편의 타수 합을 비교. 타수 합 차이 × 타당 × 배수를 진 편 각자가 이긴 편 각자에게.
+      const T=[0,0];ks.forEach(k=>T[teamOf(h,k)]+=h.s[k]);
+      const D=T[1]-T[0];
+      r.vsum=T;r.win=D>0?0:D<0?1:-1;
       r.stroke=ks.map(k=>st.unit*mult*(teamOf(h,k)===0?D:-D));
     }else r.stroke=ks.map(k=>st.unit*mult*(S-n*h.s[k]));
     r.bir=ks.map(k=>st.bonus*(n*bir[k]-nb));
@@ -816,9 +809,9 @@ function render(){
       return `<div class="line"><span class="who ell">${esc(N[k])}${parts.length>1||bonus||r.fine[k]?`<small>${parts.join(' · ')}</small>`:''}</span><span class="num ${cls(r.net[k])}">${sgn(r.net[k])}</span></div>`;
     }).join('');
     let head='';
-    if(r.vnum){
-      const [a,b]=r.vnum,w=r.win;
-      head=`<div class="line team"><span class="who ell">${badge(h,0)}${a}${r.vflip[0]?'<small class="inl">뒤집힘</small>':''} : ${badge(h,1)}${b}${r.vflip[1]?'<small class="inl">뒤집힘</small>':''}</span><span>${w<0?'동점':`${tname(h,w)} ${Math.abs(a-b)}점 차 승`}</span></div>`;
+    if(r.vsum){
+      const [a,b]=r.vsum,w=r.win;
+      head=`<div class="line team"><span class="who ell">${badge(h,0)}${a}타 : ${badge(h,1)}${b}타</span><span>${w<0?'동타':`${tname(h,w)} ${Math.abs(a-b)}타 차 승`}</span></div>`;
     }else if(r.skinW!=null){
       head=`<div class="line team"><span class="who ell">${r.skinW>=0?`${esc(N[r.skinW])} 단독 1등`:`${r.tied.map(k=>esc(N[k])).join('·')} 공동 1등`}</span><span>${r.skinW>=0?`스킨 ${won(r.pool)}`:(c===17?'판돈 비율대로 나눔':`${won(r.pool)} 이월`)}</span></div>`;
     }else if(r.teams){
@@ -942,8 +935,8 @@ async function showDrawAnim(h,auto){
     res.innerHTML=`${badge(h,0)}${esc(teamNames(h,0))} &nbsp;vs&nbsp; ${badge(h,1)}${esc(teamNames(h,1))}`+
       (!withJ?'':h.joker>=0?`<div style="font-size:13px;font-weight:500;opacity:.85">조커 ${esc(N[h.joker])}: 이 홀은 보기로 계산</div>`:`<div style="font-size:13px;font-weight:500;opacity:.85">조커가 남아서 색깔대로 편</div>`);
     const R=compute().rows[hi];
-    if(R&&R.counted&&R.vnum){
-      const [a,b]=R.vnum,w=R.win;
+    if(R&&R.counted&&R.vsum){
+      const [a,b]=R.vsum,w=R.win;
       res.innerHTML+=`<div class="dwin">${badge(h,0)}${a} : ${badge(h,1)}${b}<br>${w<0?'동점 · 주고받을 돈 없음':`${tname(h,w)} 승 · ${esc(teamNames(h,w))} 각 +${won(Math.abs(R.stroke[[0,1,2,3].find(k=>teamOf(h,k)===w)]))}`}</div>`;
     }else if(R&&R.counted&&R.teams){
       const [a,b]=R.teams,w=R.win;
@@ -1000,9 +993,6 @@ function renderSettings(){
         ${pot?'':`<label>타당 금액<input id="unit" type="number" inputmode="numeric" min="0" step="1000" value="${st.unit}"></label>`}
         <label>보너스 금액<input id="bonus" type="number" inputmode="numeric" min="0" step="1000" value="${st.bonus}"></label>
       </div>
-      ${isVegas()?`<label>버디 뒤집기
-          <select id="vegasFlip"><option value="1" ${st.vegasFlip?'selected':''}>사용 (버디 나오면 상대 숫자 뒤집기)</option><option value="0" ${!st.vegasFlip?'selected':''}>사용 안 함</option></select>
-        </label>`:''}
       ${pot?`<div class="grp">
         <div class="grph">판돈 (사람마다)</div>
         <div class="two">${ks.map(k=>`<label>${esc(N[k])}<input id="stake${k}" type="number" inputmode="numeric" min="0" step="1000" value="${st.stakes[k]}"></label>`).join('')}</div>
@@ -1068,7 +1058,6 @@ function renderSettings(){
     if(st.prizeMode==='manual')for(let i=0;i<18;i++)bind(`prize${i}`,'input',v=>{st.prizes[i]=Math.max(0,Math.round(+v)||0);updPsum();},el=>{el.value=st.prizes[i];});
     updPsum();
   }else bind('unit','input',v=>st.unit=Math.max(0,Math.round(+v)||0),el=>{el.value=st.unit;});
-  bind('vegasFlip','change',v=>st.vegasFlip=v==='1');
   bind('bonus','input',v=>st.bonus=Math.max(0,Math.round(+v)||0),el=>{el.value=st.bonus;});
   bind('fine','input',v=>st.fine=Math.max(0,Math.round(+v)||0),el=>{el.value=st.fine;});
   bind('fineCap','input',v=>st.fineCap=Math.max(0,Math.round(+v)||0),el=>{el.value=st.fineCap||'';});
@@ -1086,8 +1075,8 @@ const MODE_RULES={
     동타면 상금이 다음 홀로 이월되고, 18번 홀까지 동타면 판돈 비율대로 나눕니다.`,
   skins:()=>`스킨스: 각자 판돈을 내고, 홀마다 정해진 상금(스킨)을 혼자 가장 적게 친 사람이 전부 가져갑니다.<br>
     공동 1등이면 아무도 못 가져가고 다음 홀로 이월돼 상금이 커집니다. 18번 홀까지 이월되면 판돈 비율대로 나눕니다.`,
-  vegas:()=>`라스베가스: 1·4등과 2·3등이 한 편입니다. 1번 홀은 티샷 순서, 2번 홀부터는 직전 홀 성적순으로 자동으로 편이 정해집니다(동타면 직전 순서 유지). 편 두 사람 점수를 작은 수-큰 수로 붙여 숫자를 만듭니다(4와 5면 45). 한 사람이 10타 이상이면 큰 수를 앞에 붙입니다(5와 11이면 115).<br>
-    ${st.vegasFlip?'상대 편에 버디가 나오면 내 숫자를 뒤집습니다(45 → 54). 양쪽 편 모두 버디가 나오면 뒤집기는 없던 것이 됩니다. ':''}숫자가 작은 편이 이기고, 숫자 차이 × 타당 × 배수를 진 편 각자가 이긴 편 각자에게 냅니다.<br>
+  vegas:()=>`라스베가스: 1·4등과 2·3등이 한 편입니다. 1번 홀은 티샷 순서, 2번 홀부터는 직전 홀 성적순으로 자동으로 편이 정해집니다(동타면 직전 순서 유지). <br>
+    편 두 사람의 타수를 합쳐서 적은 편이 이기고, 타수 합 차이 × 타당 × 배수를 진 편 각자가 이긴 편 각자에게 냅니다. 동타면 주고받는 돈이 없습니다.<br>
     더블파나 버디가 나오면 다음 홀 ×2 배판입니다.`,
 };
 
@@ -1130,7 +1119,7 @@ const MODE_DESC={
   stroke:['타수 차이만큼 서로 주고받는 기본 내기','모든 사람끼리 1:1로 계산합니다 (타수 차 × 타당).','더블파나 버디가 나오면 다음 홀은 ×2 배판입니다.','버디·롱기·니어 보너스, OB·벙커·해저드 벌금이 붙습니다.'],
   draw:['홀이 끝나면 스틱으로 2:2 편을 뽑는 내기','각자 판돈을 내고, 홀마다 정한 상금을 타수 합이 적은 편이 반씩 가져갑니다.','조커를 뽑은 사람은 그 홀을 무조건 보기로 계산합니다.','동타면 상금이 다음 홀로 이월됩니다.'],
   skins:['홀 상금을 혼자 1등 한 사람이 독식','각자 판돈을 내고, 홀마다 걸린 상금(스킨)을 단독 1등이 모두 가져갑니다.','공동 1등이면 다음 홀로 이월돼 상금이 커집니다.','판돈은 사람마다 다르게 정할 수 있습니다.'],
-  vegas:['1·4등 vs 2·3등, 점수를 붙여 숫자로 겨루는 내기','1번 홀은 티샷 순서, 그 다음은 직전 홀 성적순으로 1·4등과 2·3등이 한 편. 두 사람 점수를 붙여 숫자를 만듭니다 (4·5 → 45).','상대 편에 버디가 나오면 내 숫자를 뒤집습니다 (45 → 54). 10타 이상은 큰 수가 앞 (5·11 → 115).','숫자 차이 × 타당을 진 편이 이긴 편에게 냅니다.'],
+  vegas:['1·4등 vs 2·3등, 편 타수 합으로 겨루는 내기','1번 홀은 티샷 순서, 그 다음은 직전 홀 성적순으로 1·4등과 2·3등이 한 편이 됩니다.','두 사람 타수를 합쳐 적은 편이 이깁니다.','타수 합 차이 × 타당을 진 편 각자가 이긴 편 각자에게 냅니다.'],
 };
 function renderHome(){
   const hs=loadHist();
