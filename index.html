@@ -14,7 +14,8 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css" rel="stylesheet">
 <style>
 :root{
   --bg:#eef1ec; --paper:#ffffff; --ink:#15211a; --mut:#66736b; --line:#d8ddd6;
@@ -196,7 +197,7 @@ summary{padding:14px 16px;font-weight:700;cursor:pointer}
 .danger{height:44px;border-radius:8px;border:1px solid var(--red);color:var(--red);font-weight:700}
 .danger.arm{background:var(--red);color:#fff}
 
-.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:10;display:flex;align-items:center;gap:14px;background:var(--ink);color:var(--paper);padding:10px 12px 10px 16px;border-radius:12px;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.25);width:max-content;max-width:calc(100% - 32px)}
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:14px;background:var(--ink);color:var(--paper);padding:10px 12px 10px 16px;border-radius:12px;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.25);width:max-content;max-width:calc(100% - 32px)}
 .toast[hidden]{display:none}
 .toast button{color:var(--flag);font-weight:700;padding:4px 6px;white-space:nowrap;flex:none}
 .toast span{min-width:0}
@@ -241,15 +242,116 @@ summary{padding:14px 16px;font-weight:700;cursor:pointer}
 .dok{margin-top:10px;width:100%;height:48px;border-radius:12px;background:#fff;color:#15211a;font-weight:700;font-size:16px;opacity:0;pointer-events:none;transition:opacity .25s}
 .dok.show{opacity:1;pointer-events:auto}
 .dskip{font-size:12px;opacity:.55;margin-top:8px}
+
+/* ---- 게임 화면 보조 ---- */
+.bar .top{align-items:center}
+.barbtn{flex:none;height:28px;padding:0 10px;border-radius:14px;background:rgba(255,255,255,.14);color:#fff;font-size:12px;font-weight:700}
+.bar .top .ell{flex:1;min-width:0;text-align:center}
+.endrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:22px}
+.endrow .danger,.endrow .ghostbtn{height:46px}
+body.noscroll{overflow:hidden}
+
+/* ---- 설정창(시트) ---- */
+.sheet{position:fixed;inset:0;z-index:15;background:rgba(5,10,8,.55);display:flex;align-items:flex-end;justify-content:center}
+.sheet[hidden]{display:none}
+.sheet-card{width:100%;max-width:560px;max-height:92vh;max-height:92dvh;display:flex;flex-direction:column;background:var(--paper);color:var(--ink);border-radius:16px 16px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.35);animation:sheetup .22s ease-out}
+@keyframes sheetup{from{transform:translateY(48px);opacity:0}}
+.sheet-h{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.sheet-h b{font-size:17px}
+.sheet-x{color:var(--green);font-weight:700;padding:6px 8px}
+.sheet .set{overflow:auto;padding:14px 16px 18px;-webkit-overflow-scrolling:touch}
+.sheet-f{padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+.startbtn{width:100%;height:52px;border-radius:12px;background:var(--green);color:#fff;font-size:17px;font-weight:700}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .startbtn{color:#0f1512}}
+:root[data-theme="dark"] .startbtn{color:#0f1512}
+.modeline{display:flex;align-items:baseline;gap:8px;font-size:13px;color:var(--mut)}
+.modeline b{font-size:18px;color:var(--ink)}
+.modeline small{font-size:11px;letter-spacing:1px}
+
+/* ---- 도트 화면 공통 (시작 · 모드 선택 · 기록) ---- */
+body.pxmode{background:#0d1a2b}
+.px{font-family:"Galmuri11","Galmuri9","IBM Plex Sans KR",sans-serif;color:#f3f0e6;min-height:100vh;min-height:100dvh;max-width:560px;margin:0 auto;padding:0 16px 32px;position:relative;overflow:hidden;
+  background:linear-gradient(#0d1a2b,#13304a 70%,#1b4466)}
+.px[hidden]{display:none}
+.stars{position:absolute;inset:0;pointer-events:none}
+.stars i{position:absolute;width:4px;height:4px;background:#fff;opacity:.85;animation:twk 2.4s steps(2) infinite}
+@keyframes twk{50%{opacity:.15}}
+.hm{position:relative;display:flex;flex-direction:column;align-items:center;min-height:100vh;min-height:100dvh;padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
+.logo{font-family:"Press Start 2P",monospace;font-weight:400;margin:0;text-align:center;line-height:1.2;letter-spacing:2px}
+.logo span{display:block;font-size:clamp(46px,15vw,66px);color:#ffd23f;text-shadow:4px 4px 0 #e5483b,8px 8px 0 #4a1410;animation:bob 1.6s steps(2) infinite}
+.logo .l2{color:#7ee08a;text-shadow:4px 4px 0 #1f6b35,8px 8px 0 #0b2a15;animation-delay:.8s}
+@keyframes bob{50%{transform:translateY(-5px)}}
+.tagline{margin-top:20px;font-size:15px;color:#cfe3ff;letter-spacing:2px}
+.scene{position:relative;width:100%;height:150px;margin:22px 0 4px}
+.scene .flag{position:absolute;left:56%;bottom:44px}
+.scene .ball{position:absolute;left:22%;bottom:44px;animation:hop 1.4s steps(7) infinite}
+@keyframes hop{0%,100%{transform:translate(0,0)}50%{transform:translate(18px,-30px)}}
+.ground{position:absolute;left:-16px;right:-16px;bottom:0;height:48px;background:#3c8d2f;box-shadow:inset 0 8px 0 #57b347,inset 0 -14px 0 #2e6f24}
+.hole{position:absolute;z-index:1;left:calc(56% - 12px);bottom:40px;width:28px;height:8px;background:#0b1f12}
+.menu{width:100%;display:grid;gap:14px;margin-top:22px}
+.pxbtn{font-family:inherit;width:100%;min-height:56px;padding:10px 14px;font-size:18px;color:#fff;background:#24456b;border:4px solid #0a1220;
+  box-shadow:inset -4px -4px 0 #16314f,inset 4px 4px 0 #3d6a9a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:0}
+.pxbtn small{font-size:12px;opacity:.85}
+.pxbtn.y{background:#ffd23f;color:#2b1a00;box-shadow:inset -4px -4px 0 #c99a10,inset 4px 4px 0 #fff0a6}
+.pxbtn:active{transform:translateY(3px)}
+.pxbtn.arm,.pxbtn.delbtn.arm{background:#e5483b;color:#fff;box-shadow:inset -4px -4px 0 #9c2a20,inset 4px 4px 0 #ff8a7d;font-size:15px}
+.blink{margin-top:26px;font-family:"Press Start 2P",monospace;font-size:12px;color:#ffd23f;animation:blk 1s steps(1) infinite}
+@keyframes blk{50%{opacity:0}}
+.foot{margin-top:auto;padding:28px 0 calc(8px + env(safe-area-inset-bottom,0px));font-size:12px;color:#8aa3bf}
+.ms-h{display:flex;align-items:center;gap:12px;padding-top:calc(env(safe-area-inset-top,0px) + 20px)}
+.pxback{font-family:inherit;flex:none;width:44px;height:44px;background:#24456b;color:#fff;border:4px solid #0a1220;box-shadow:inset -3px -3px 0 #16314f,inset 3px 3px 0 #3d6a9a;font-size:15px}
+.ms-t{font-family:"Press Start 2P",monospace;font-size:clamp(13px,4.6vw,18px);color:#ffd23f;text-shadow:3px 3px 0 #4a1410;line-height:1.4}
+.ms-sub{margin:16px 0 14px;font-size:13px;color:#a9c1dc;line-height:1.6}
+.mlist{display:grid;gap:12px}
+.mcard{font-family:inherit;width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;background:#13253a;color:#fff;border:4px solid #0a1220;border-radius:0;
+  box-shadow:inset -4px -4px 0 #0c1a2a,inset 4px 4px 0 #24456b;text-align:left;transition:opacity .2s,transform .15s}
+.mlist.has .mcard:not(.on){opacity:.45}
+.mcard.on{background:#1d3a5c;transform:translateX(6px);animation:glow 1s steps(2) infinite}
+@keyframes glow{0%,100%{box-shadow:inset -4px -4px 0 #0c1a2a,inset 4px 4px 0 #3d6a9a,0 0 0 4px #ffd23f}50%{box-shadow:inset -4px -4px 0 #0c1a2a,inset 4px 4px 0 #3d6a9a,0 0 0 4px #ff9f1c}}
+.mcard .cur{flex:none;width:12px;color:#ffd23f;visibility:hidden;animation:blk .8s steps(1) infinite}
+.mcard.on .cur{visibility:visible}
+.mcard .mico{flex:none}
+.mcard .mn{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+.mcard b{font-size:18px;font-weight:700}
+.mcard small{font-family:"Press Start 2P",monospace;font-size:9px;letter-spacing:1px;color:#a9c1dc}
+.mcard .hsum{font-size:12px;color:#cfe3ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mdesc{display:grid;gap:10px;margin:-2px 0 6px 6px;padding:14px;background:#0a1626;border:4px solid #ffd23f;border-top:0}
+.mdesc p{margin:0;font-size:14px;line-height:1.55;opacity:0;transform:translateX(-10px);animation:lineIn .3s steps(3) forwards;animation-delay:calc(var(--d) * 110ms)}
+.mdesc p::before{content:"▸ ";color:#ffd23f}
+.mdesc .pxbtn{margin-top:4px;opacity:0;animation:lineIn .3s steps(3) forwards;animation-delay:.45s}
+@keyframes lineIn{to{opacity:1;transform:none}}
+.hcard{margin-top:14px;padding:12px 14px;background:#13253a;border:4px solid #0a1220;box-shadow:inset 4px 4px 0 #24456b}
+.hh{font-size:13px;color:#ffd23f;margin-bottom:6px}
+.hrow{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:7px 0;border-top:1px dashed #2c4866;font-size:15px}
+.hrow:first-of-type{border-top:0}
+.hrow small{color:#a9c1dc;font-size:12px}
+.hrow .up{color:#7ee08a}.hrow .dn{color:#ff8a7d}
+.htbl{overflow-x:auto;padding:6px}
+.htbl table{font-size:12px;color:#f3f0e6}
+.htbl th{background:none;color:#a9c1dc}
+.htbl td,.htbl th{border-bottom:1px solid #2c4866;padding:5px 4px}
+.htbl tr.sum td{background:#1d3a5c;color:#ffd23f}
+.delbtn{margin-top:18px;font-size:15px;min-height:48px}
+@media (prefers-reduced-motion: reduce){.logo span,.scene .ball,.stars i,.blink,.mcard.on,.mdesc p,.mdesc .pxbtn{animation:none;opacity:1;transform:none}}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div id="scr-home" class="scr px" hidden></div>
+<div id="scr-modes" class="scr px" hidden></div>
+<div id="scr-hist" class="scr px" hidden></div>
+<div id="scr-game" class="wrap" hidden>
   <div id="main"></div>
-  <details id="setbox">
-    <summary>설정 · 규칙</summary>
+  <div class="endrow">
+    <button type="button" class="ghostbtn" data-act="opensheet">설정 · 규칙</button>
+    <button type="button" class="danger" data-act="endround">라운드 종료</button>
+  </div>
+</div>
+<div id="sheet" class="sheet" hidden>
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet-h"><b id="sheetTitle">설정</b><button type="button" class="sheet-x" data-act="closesheet">닫기</button></div>
     <div class="set" id="settings"></div>
-  </details>
+    <div class="sheet-f" id="sheetFoot"></div>
+  </div>
 </div>
 <div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button id="toastUndo" type="button">되돌리기</button></div>
 <script>
@@ -263,12 +365,19 @@ const COURSES={
   std:{name:'기본 코스',nines:[['',[4,4,3,4,5,4,3,4,5]],['',[4,3,4,5,4,4,3,5,4]]]},
 };
 const DEF_COURSE='zdh';
+// 내기 방식. team: 2:2 편(4명), pot: 판돈에서 홀 상금을 나눠 갖는 방식
+const MODES={
+  stroke:{name:'스트로크',en:'STROKE',min:2,max:4,team:false,pot:false},
+  draw:{name:'뽑기',en:'DRAW',min:4,max:4,team:true,pot:true},
+  skins:{name:'스킨스',en:'SKINS',min:2,max:4,team:false,pot:true},
+  vegas:{name:'라스베가스',en:'VEGAS',min:4,max:4,team:true,pot:false},
+};
 const coursePars=id=>[...COURSES[id].nines[0][1],...COURSES[id].nines[1][1]];
 function holeSub(i){const [n]=COURSES[st.course].nines[i<9?0:1];return n?`${n} ${i%9+1}번`:'';}
 const fill=v=>Array(MAXP).fill(v);
 const P=()=>[...Array(st.n).keys()];           // 이번 라운드 참가자 인덱스
 function blankHole(par){return{par,s:fill(null),t:fill(false),ob:fill(0),bk:fill(0),hz:fill(0),tp:fill(0),long:-1,near:-1,pair:0,joker:-1,c0:0,sticks:null,left:null}}
-function blank(course=DEF_COURSE){return{n:DEF_N,names:[...DEF_NAMES],unit:1000,bonus:5000,fine:2000,potMode:'pot',fineRule:'all',fineCap:0,mode:'stroke',stakes:fill(45000),prizeMode:'even',prizes:Array(18).fill(0),cur:0,course,holes:coursePars(course).map(blankHole)}}
+function blank(course=DEF_COURSE){return{n:DEF_N,names:[...DEF_NAMES],unit:1000,bonus:5000,fine:2000,potMode:'pot',fineRule:'all',fineCap:0,mode:'stroke',vegasFlip:true,active:false,stakes:fill(45000),prizeMode:'even',prizes:Array(18).fill(0),cur:0,course,holes:coursePars(course).map(blankHole)}}
 const touched=h=>h.t.some(Boolean);
 // 코스 적용: force면 모든 홀 파 변경, 아니면 스코어를 직접 입력한 홀은 건드리지 않음. 기본값 스코어는 새 파를 따라감
 function applyCourse(id,force){
@@ -299,13 +408,14 @@ function normalize(raw){
       left:['r','g','j'].includes(h.left)?h.left:null};
   });
   holes.forEach(clampHole);
+  const active=typeof raw.active==='boolean'?raw.active:holes.some(touched);
   // 인원 정보가 없는 예전(2인용) 저장본: 이미 친 기록이 있으면 2인 그대로, 아니면 4인으로
   const n=[2,3,4].includes(raw.n)?raw.n:(holes.some(touched)?2:DEF_N);
   return{
-    n,
+    n,active,
     names:arr(raw.names,(v,k)=>(typeof v==='string'&&v.trim())||DEF_NAMES[k]),
     unit:num(raw.unit,d.unit), bonus:num(raw.bonus,d.bonus),
-    fine:num(raw.fine,d.fine), fineRule:raw.fineRule==='oecd'?'oecd':'all', fineCap:num(raw.fineCap,0), potMode:raw.potMode==='each'?'each':'pot', mode:raw.mode==='draw'?'draw':'stroke', stakes:arr(raw.stakes,(v,k)=>num(v,num(raw.stake,d.stakes[k]))),
+    fine:num(raw.fine,d.fine), fineRule:raw.fineRule==='oecd'?'oecd':'all', fineCap:num(raw.fineCap,0), potMode:raw.potMode==='each'?'each':'pot', mode:MODES[raw.mode]?raw.mode:'stroke', vegasFlip:raw.vegasFlip!==false, stakes:arr(raw.stakes,(v,k)=>num(v,num(raw.stake,d.stakes[k]))),
     prizeMode:raw.prizeMode==='manual'?'manual':'even',
     prizes:[...Array(18).keys()].map(i=>num(Array.isArray(raw.prizes)?raw.prizes[i]:undefined,d.prizes[i])),
     cur:Number.isInteger(raw.cur)&&raw.cur>=0&&raw.cur<18?raw.cur:0,
@@ -333,7 +443,7 @@ try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist();}c
 async function exportRound(){
   const d=new Date(),p=n=>String(n).padStart(2,'0');
   const name=`golf-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.json`;
-  const blob=new Blob([JSON.stringify({app:'golf-bet',v:1,savedAt:d.toISOString(),state:st},null,1)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({app:'golf-bet',v:2,savedAt:d.toISOString(),state:st,history:loadHist()},null,1)],{type:'application/json'});
   try{
     const file=new File([blob],name,{type:'application/json'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'골프 정산 기록'});return;}
@@ -348,8 +458,12 @@ function importRound(file){
       const data=JSON.parse(rd.result),raw=data&&data.state?data.state:data;
       if(!raw||!Array.isArray(raw.holes))throw 0;
       const snap=JSON.stringify(st);
-      st=normalize(raw);save();renderSettings();render();
-      toast('기록을 불러왔습니다',snap);
+      st=normalize(raw);save();
+      // 라운드 기록은 겹치지 않는 것만 합친다
+      let added=0;
+      if(Array.isArray(data.history)){const hs=loadHist(),ids=new Set(hs.map(x=>x.id));data.history.forEach(x=>{if(x&&x.id&&!ids.has(x.id)){hs.push(x);added++;}});saveHist(hs);}
+      renderSettings();render();renderHome();if(ui==='hist')renderHist();
+      toast(`기록을 불러왔습니다${added?` (라운드 기록 ${added}개 추가)`:''}`,snap);
     }catch(e){toast('골프 정산 기록 파일이 아닙니다',null);}
   };
   rd.readAsText(file);
@@ -377,18 +491,23 @@ function fillDefault(h){
   P().forEach(k=>{if(h.s[k]==null){h.s[k]=h.par;h.t[k]=false;ch=true;}});
   return ch;
 }
-// 뽑기(2:2 팀전): 4명일 때만. pair = 첫 번째 플레이어(인덱스 0)와 같은 편이 되는 사람의 인덱스(1~3)
-const isDraw=()=>st.mode==='draw'&&st.n===4;
+const M=()=>MODES[st.mode]||MODES.stroke;
+// pair = 첫 번째 플레이어(인덱스 0)와 같은 편이 되는 사람의 인덱스(1~3)
+const isTeam=()=>M().team&&st.n===4;
+const usePot=()=>M().pot&&(!M().team||st.n===4);
+const isDraw=()=>st.mode==='draw'&&st.n===4;     // 조커가 있는 뽑기
+const isVegas=()=>st.mode==='vegas'&&st.n===4;
+const isSkins=()=>st.mode==='skins';
 const isOECD=()=>st.fineRule==='oecd';
 function rnd(m){try{return crypto.getRandomValues(new Uint32Array(1))[0]%m;}catch(e){return Math.floor(Math.random()*m);}}
 // 스틱 5개(빨강2·초록2·조커1) 중 4명이 하나씩 뽑는다. 조커를 뽑은 사람은 한 명 모자란 색 편에 들어가고 타수는 보기로 계산.
 // 조커가 남으면(아무도 안 뽑으면) 색깔대로 편.
 let pendingAnim=false;
 function drawSticks(h){
-  const sticks=['r','r','g','g','j'];
+  const sticks=isDraw()?['r','r','g','g','j']:['r','r','g','g'];
   for(let i=sticks.length-1;i>0;i--){const j=rnd(i+1);[sticks[i],sticks[j]]=[sticks[j],sticks[i]];}
   const got=sticks.slice(0,4), jk=got.indexOf('j');
-  h.sticks=[...got];h.left=sticks[4];
+  h.sticks=[...got];h.left=sticks[4]||null;
   const col=[...got];
   if(jk>=0)col[jk]=col.filter(x=>x==='r').length<2?'r':'g';
   h.joker=jk;
@@ -429,9 +548,9 @@ function compute(){
   const rows=[];let mult=1,broken=false,firstGap=-1,carry=0;
   const total=fill(0).slice(0,n), potBy=fill(0).slice(0,n), prizeTot=fill(0).slice(0,n), sideTot=fill(0).slice(0,n);
   // OECD 회원: 뽑기는 받은 상금이 낸 판돈 이상, 스트로크는 지금까지 딴 돈이 플러스(벌금 제외)
-  const memberOf=k=>isDraw()?(st.stakes[k]>0&&prizeTot[k]>=st.stakes[k]):(total[k]+potBy[k]>0);
+  const memberOf=k=>usePot()?(st.stakes[k]>0&&prizeTot[k]>=st.stakes[k]):(total[k]+potBy[k]>0);
   st.holes.forEach((h,i)=>{
-    const done=ks.every(k=>h.s[k]!=null)&&(!isDraw()||h.pair>0);
+    const done=ks.every(k=>h.s[k]!=null)&&(!isTeam()||h.pair>0);
     const r={i,mult:broken?null:mult,done,counted:false,half:!done&&ks.some(k=>h.s[k]!=null)};
     if(!done||broken){ if(!done&&!broken){broken=true;firstGap=i;} rows.push(r); return; }
     const S=ks.reduce((a,k)=>a+h.s[k],0);
@@ -448,6 +567,26 @@ function compute(){
       r.carryOut=carry;
       r.contrib=ks.map(k=>prizeOf(i)*shareOf(k));
       r.stroke=ks.map(k=>r.prize[k]-r.contrib[k]);
+    }else if(isSkins()){
+      // 스킨스: 홀 상금을 혼자 가장 적게 친 사람이 다 가져간다. 공동 1등이면 다음 홀로 이월.
+      const lo=Math.min(...ks.map(k=>h.s[k])), ws=ks.filter(k=>h.s[k]===lo), w=ws.length===1?ws[0]:-1;
+      const pool=prizeOf(i)+carry;
+      r.skinW=w;r.pool=pool;r.carryIn=carry;r.tied=ws;
+      r.prize=ks.map(k=>w<0?(i===17?pool*shareOf(k):0):(k===w?pool:0));
+      carry=w<0&&i<17?pool:0;
+      r.carryOut=carry;
+      r.contrib=ks.map(k=>prizeOf(i)*shareOf(k));
+      r.stroke=ks.map(k=>r.prize[k]-r.contrib[k]);
+    }else if(isVegas()){
+      // 라스베가스: 편 두 사람 점수를 작은 수-큰 수로 붙여 두 자리 숫자(4,5 -> 45, 4,10 -> 410).
+      // 상대 편에 버디가 나오면 내 숫자를 뒤집는다(큰 수-작은 수). 숫자 차이 × 타당 × 배수를 진 편 각자가 이긴 편 각자에게.
+      const sc=[[],[]];ks.forEach(k=>sc[teamOf(h,k)].push(h.s[k]));
+      const bt=[0,1].map(t=>ks.some(k=>teamOf(h,k)===t&&h.s[k]<=h.par-1));
+      const num=(a,flip)=>{const [x,y]=[...a].sort((p,q)=>p-q);return flip?y*10+x:(y>=10?x*100+y:x*10+y);};
+      const fl=[st.vegasFlip&&bt[1],st.vegasFlip&&bt[0]];
+      const V=[num(sc[0],fl[0]),num(sc[1],fl[1])], D=V[1]-V[0];
+      r.vnum=V;r.vflip=fl;r.win=D>0?0:D<0?1:-1;
+      r.stroke=ks.map(k=>st.unit*mult*(teamOf(h,k)===0?D:-D));
     }else r.stroke=ks.map(k=>st.unit*mult*(S-n*h.s[k]));
     r.bir=ks.map(k=>st.bonus*(n*bir[k]-nb));
     r.lng=ks.map(win(h.long)).map(x=>x*st.bonus);
@@ -466,7 +605,7 @@ function compute(){
       if(h.s[k]>=maxS(h))why.push(nm+' 더블파');
       if(h.s[k]<=h.par-1)why.push(nm+' '+(h.s[k]<=h.par-2?'이글':'버디'));
     });
-    const next=isDraw()?1:(why.length?2:1);
+    const next=usePot()?1:(why.length?2:1);
     r.why=why;r.next=next;r.counted=true;
     ks.forEach(k=>{
       total[k]+=r.net[k];
@@ -540,21 +679,23 @@ function render(){
   }).join('');
 
   let multTxt,multCls='';
-  if(r.mult==null&&isDraw()&&firstGap===c&&!h.pair){multTxt=`홀 상금 ${won(prizeOf(c)+carry)}${carry?` (이월 ${won(carry)} 포함)`:''} · 홀이 끝나면 아래에서 뽑기`;multCls=carry?'hot':'';}
-  else if(r.mult==null){multTxt=`${firstGap+1}번 홀 ${isDraw()&&!st.holes[firstGap].pair?'뽑기를 안 해서':'스코어가 비어 있어'} 계산이 멈췄습니다`;multCls='warn';}
-  else if(isDraw()){
+  if(r.mult==null&&isTeam()&&firstGap===c&&!h.pair){
+    multTxt=usePot()?`홀 상금 ${won(prizeOf(c)+carry)}${carry?` (이월 ${won(carry)} 포함)`:''} · 홀이 끝나면 아래에서 뽑기`:`${r.mult!=null&&r.mult>=2?'×2 배판 · ':''}홀이 끝나면 아래에서 편 뽑기`;multCls=carry?'hot':'';}
+  else if(r.mult==null){multTxt=`${firstGap+1}번 홀 ${isTeam()&&!st.holes[firstGap].pair?'뽑기를 안 해서':'스코어가 비어 있어'} 계산이 멈췄습니다`;multCls='warn';}
+  else if(usePot()){
     const base=prizeOf(c),ci=r.counted?r.carryIn:(c===rows.filter(x=>x.counted).length?carry:0);
     multTxt=ci?`<b>홀 상금 ${won(base+ci)}</b> (기본 ${won(base)} + 이월 ${won(ci)})`:`홀 상금 ${won(base)}`;multCls=ci?'hot':'';
-    if(!h.pair)multTxt+=' · 홀 끝나고 뽑기';
+    if(isTeam()&&!h.pair)multTxt+=' · 홀 끝나고 뽑기';
   }
   else if(r.mult>=2){multTxt=`<b>×${r.mult}</b> ${multName(r.mult)} 홀 · 타당 ${won(st.unit*r.mult)}`;multCls='hot';}
   else multTxt=`기본 ×1 · 타당 ${won(st.unit)}`;
-  if(r.mult==null&&!(isDraw()&&firstGap===c))multTxt+=` <button class="jump" data-act="go" data-i="${firstGap}">이동</button>`;
+  if(isVegas()&&r.mult!=null&&!h.pair)multTxt+=' · 홀 끝나고 편 뽑기';
+  if(r.mult==null&&!(isTeam()&&firstGap===c))multTxt+=` <button class="jump" data-act="go" data-i="${firstGap}">이동</button>`;
 
   // 누를 때마다 횟수 1→2→3→0
   const tag=(key,txt,k)=>{const v=h[key][k];return `<button class="tag ${v?'on':''}" data-act="${key}" data-p="${k}" aria-label="${esc(N[k])} ${txt} ${v}회">${txt}${v>1?`<span class="cnt">${v}</span>`:''}</button>`;};
   // 뽑기는 홀이 끝난 뒤(스코어 입력 후)에 한다
-  const teamBox=isDraw()?`<div class="teams">
+  const teamBox=isTeam()?`<div class="teams">
       ${h.pair?`<div class="vs"><span>${badge(h,0)}${esc(teamNames(h,0))}</span><b>vs</b><span>${badge(h,1)}${esc(teamNames(h,1))}</span>
         <button class="redraw ghost" data-act="showdraw">뽑기 다시 보기</button></div>`
       :`<button class="drawbig" data-act="draw">스코어 입력 끝 · 뽑기!</button>
@@ -563,7 +704,7 @@ function render(){
       <div class="brow"><span>편</span><div class="seg" style="--k:3">${[1,2,3].map(v=>{
         const t0=[0,v].map(k=>esc(N[k])).join('·');
         return `<button class="${h.pair===v?'on':''}" data-act="pair" data-v="${v}" aria-pressed="${h.pair===v}">${t0}</button>`;}).join('')}</div></div>
-      <div class="brow"><span>조커</span><div class="seg" style="--k:5">${[-1,0,1,2,3].map(v=>`<button class="${h.joker===v?'on':''}" data-act="joker" data-v="${v}" aria-pressed="${h.joker===v}">${v<0?'없음':esc(N[v])}</button>`).join('')}</div></div>
+      ${isDraw()?`<div class="brow"><span>조커</span><div class="seg" style="--k:5">${[-1,0,1,2,3].map(v=>`<button class="${h.joker===v?'on':''}" data-act="joker" data-v="${v}" aria-pressed="${h.joker===v}">${v<0?'없음':esc(N[v])}</button>`).join('')}</div></div>`:''}
       <div class="brow"><span>색</span><div class="seg" style="--k:2">${[0,1].map(v=>`<button class="${(h.c0|0)===v?'on':''}" data-act="c0" data-v="${v}">${esc(N[0])} 편 ${COLOR[v].nm}</button>`).join('')}</div></div>
       ${h.pair?`<button class="ghostbtn" data-act="draw">다시 뽑기</button>`:''}
       </details>
@@ -572,7 +713,7 @@ function render(){
     const s=h.s[k],vc=s==null?'':(s<=h.par-1?'bir':(s>=maxS(h)?'tri':''));
     return `<div class="pl">
       <div class="pinfo">
-        <div class="pname ell">${isDraw()&&h.pair?`${badge(h,teamOf(h,k))}`:''}<span class="nmlink" data-act="rename" data-p="${k}">${esc(N[k])}</span>${isOECD()&&mem[k]?'<i class="tm oe">OECD</i>':''}${isDraw()&&h.joker===k?'<i class="tm jk">조커</i>':''}</div>
+        <div class="pname ell">${isTeam()&&h.pair?`${badge(h,teamOf(h,k))}`:''}<span class="nmlink" data-act="rename" data-p="${k}">${esc(N[k])}</span>${isOECD()&&mem[k]?'<i class="tm oe">OECD</i>':''}${isDraw()&&h.joker===k?'<i class="tm jk">조커</i>':''}</div>
         <div class="tags">
           ${tag('ob','OB',k)}${tag('bk','벙커',k)}${tag('hz','해저드',k)}${isOECD()?tag('tp','3퍼트',k):''}
         </div>
@@ -592,35 +733,41 @@ function render(){
     const lines=ks.map(k=>{
       const bonus=r.bir[k]+r.lng[k]+r.nr[k];
       const parts=[];
-      if(r.prize){if(r.prize[k])parts.push('상금 '+sgn(r.prize[k]));if(r.contrib[k])parts.push('판돈 '+sgn(-r.contrib[k]));}
+      if(r.prize){if(r.prize[k])parts.push((r.skinW===k?'스킨 ':'상금 ')+sgn(r.prize[k]));if(r.contrib[k])parts.push('판돈 '+sgn(-r.contrib[k]));}
       else if(r.stroke[k])parts.push('타수 '+sgn(r.stroke[k]));
       if(bonus)parts.push('보너스 '+sgn(bonus));
       if(r.fine[k])parts.push((st.potMode==='pot'?'벌금(공금) ':'벌금 ')+sgn(r.fine[k]));
       return `<div class="line"><span class="who ell">${esc(N[k])}${parts.length>1||bonus||r.fine[k]?`<small>${parts.join(' · ')}</small>`:''}</span><span class="num ${cls(r.net[k])}">${sgn(r.net[k])}</span></div>`;
     }).join('');
     let head='';
-    if(r.teams){
+    if(r.vnum){
+      const [a,b]=r.vnum,w=r.win;
+      head=`<div class="line team"><span class="who ell">${badge(h,0)}${a}${r.vflip[0]?'<small class="inl">뒤집힘</small>':''} : ${badge(h,1)}${b}${r.vflip[1]?'<small class="inl">뒤집힘</small>':''}</span><span>${w<0?'동점':`${tname(h,w)} ${Math.abs(a-b)}점 차 승`}</span></div>`;
+    }else if(r.skinW!=null){
+      head=`<div class="line team"><span class="who ell">${r.skinW>=0?`${esc(N[r.skinW])} 단독 1등`:`${r.tied.map(k=>esc(N[k])).join('·')} 공동 1등`}</span><span>${r.skinW>=0?`스킨 ${won(r.pool)}`:(c===17?'판돈 비율대로 나눔':`${won(r.pool)} 이월`)}</span></div>`;
+    }else if(r.teams){
       const [a,b]=r.teams,w=r.win;
       head=`<div class="line team"><span class="who ell">${badge(h,0)}${a}타 : ${badge(h,1)}${b}타</span><span>${w<0?(c===17?'동타 · 판돈 비율대로 나눔':`동타 · ${won(r.pool)} 이월`):`${tname(h,w)} 승 · ${won(r.pool)}`}</span></div>`;
     }
     res=`<div class="res">${head}${lines}
-      ${c<17&&!isDraw()?`<div class="next ${r.next>=2?'hot':''}">다음 홀 ${r.next>=2?`×${r.next} ${multName(r.next)} (${esc(r.why.join(', '))})`:'기본 ×1'}</div>`:''}
+      ${c<17&&!usePot()?`<div class="next ${r.next>=2?'hot':''}">다음 홀 ${r.next>=2?`×${r.next} ${multName(r.next)} (${esc(r.why.join(', '))})`:'기본 ×1'}</div>`:''}
     </div>`;
   }
 
   const trs=rows.map((R,i)=>{
     const x=st.holes[i];
-    return `<tr class="click ${i===c?'cur':''}" data-act="go" data-i="${i}"><td>${i+1}${isDraw()&&x.pair?`<small class="pr">${esc(N[0].slice(0,1))}${esc(N[x.pair].slice(0,1))}</small>`:''}</td><td>${x.par}</td>
-      ${isDraw()?`<td>${R.counted?(R.win<0?'<small>이월</small>':badge(x,R.win)):'-'}</td>`:`<td class="num ${R.mult>=2?'m2':''}">${R.mult==null?'-':'×'+R.mult}</td>`}
+    return `<tr class="click ${i===c?'cur':''}" data-act="go" data-i="${i}"><td>${i+1}${isTeam()&&x.pair?`<small class="pr">${esc(N[0].slice(0,1))}${esc(N[x.pair].slice(0,1))}</small>`:''}</td><td>${x.par}</td>
+      ${isDraw()?`<td>${R.counted?(R.win<0?'<small>이월</small>':badge(x,R.win)):'-'}</td>`
+        :isSkins()?`<td>${R.counted?(R.skinW<0?'<small>이월</small>':`<small>${esc(N[R.skinW])}</small>`):'-'}</td>`:`<td class="num ${R.mult>=2?'m2':''}">${R.mult==null?'-':'×'+R.mult}</td>`}
       ${ks.map(k=>`<td class="num">${x.s[k]??'-'}${R.counted?`<small class="${cls(R.net[k])}">${R.net[k]?sgn(R.net[k]).replace(/원$/,''):'0'}</small>`:''}</td>`).join('')}</tr>`;
   }).join('');
   const sum=(k)=>st.holes.reduce((a,x)=>a+(x.s[k]??0),0);
   const parSum=st.holes.reduce((a,x)=>a+x.par,0);
 
   // 공금 벌금은 사람끼리 주고받는 돈이 아니므로 송금 계산에서 빼고 따로 보여준다
-  const tf=transfers(isDraw()?sideTot:total.map((v,k)=>v+potBy[k]));
+  const tf=transfers(usePot()?sideTot:total.map((v,k)=>v+potBy[k]));
   const pd=prizeSum()-potTotal();
-  const prizeRows=isDraw()?`<div class="row sec"><span>판돈 상금 <small>판돈 합계 ${won(potTotal())} · 홀 상금 ${st.prizeMode==='manual'?'직접 설정':`홀당 ${won(prizeOf(0))}`}${Math.abs(pd)>=1?` · 상금 합계가 판돈보다 ${won(pd)} ${pd>0?'많음':'적음'}`:''}${carry?` · 이월 중 ${won(carry)}`:''}</small></span></div>
+  const prizeRows=usePot()?`<div class="row sec"><span>판돈 상금 <small>판돈 합계 ${won(potTotal())} · 홀 상금 ${st.prizeMode==='manual'?'직접 설정':`홀당 ${won(prizeOf(0))}`}${Math.abs(pd)>=1?` · 상금 합계가 판돈보다 ${won(pd)} ${pd>0?'많음':'적음'}`:''}${carry?` · 이월 중 ${won(carry)}`:''}</small></span></div>
     ${ks.map(k=>`<div class="row"><span class="ell">${esc(N[k])} <small class="inl">판돈 ${won(st.stakes[k])}</small></span><b class="num">상금 ${won(prizeTot[k])}</b></div>`).join('')}
     <div class="row sec"><span>보너스${st.potMode==='each'?'·벌금':''} 정산 <small>사람끼리 주고받을 돈</small></span></div>`:'';
   const settle=prizeRows+(tf.length
@@ -631,9 +778,9 @@ function render(){
 
   document.getElementById('main').innerHTML=`
   <div class="bar">
-    <div class="top">${doneCnt}/18홀 · ${esc(COURSES[st.course].name)}<span id="savest" class="savest">이 기기에 저장됨</span></div>
+    <div class="top"><button class="barbtn" data-act="home" aria-label="시작 화면">◀ 홈</button><span class="ell">${doneCnt}/18홀 · ${esc(COURSES[st.course].name)}</span><button class="barbtn" data-act="opensheet">설정</button></div>
     <div class="board n${n}" style="--n:${n}">${tiles}</div>
-    <div class="sub">${isDraw()?`뽑기 · 판돈 ${won(potTotal())} · ${st.prizeMode==='manual'?'홀 상금 직접 설정':`홀당 ${won(prizeOf(0))}`}`:`타당 ${won(st.unit)}`} · 버디/롱기/니어 ${won(st.bonus)} · ${isOECD()?'OECD 벌금':'벌금'} ${won(st.fine)}</div>
+    <div class="sub">${M().name} · ${usePot()?`판돈 ${won(potTotal())} · ${st.prizeMode==='manual'?'홀 상금 직접 설정':`홀당 ${won(prizeOf(0))}`}`:`타당 ${won(st.unit)}`} · 버디/롱기/니어 ${won(st.bonus)} · ${isOECD()?'OECD 벌금':'벌금'} ${won(st.fine)}</div>
   </div>
   ${N.slice(0,n).every((x,k)=>x===DEF_NAMES[k])?`<button class="namehint" data-act="rename" data-p="0">플레이어 이름 설정하기 (지금 A·B·C·D)</button>`:''}
   <div class="chips">${chips}</div>
@@ -662,7 +809,7 @@ function render(){
 
   <h2>스코어카드</h2>
   <div class="tbl"><table>
-    <thead><tr><th>홀</th><th>Par</th><th>${isDraw()?'승':'배수'}</th>${ks.map(k=>`<th>${esc(N[k])}</th>`).join('')}</tr></thead>
+    <thead><tr><th>홀</th><th>Par</th><th>${usePot()?'승':'배수'}</th>${ks.map(k=>`<th>${esc(N[k])}</th>`).join('')}</tr></thead>
     <tbody>${trs}
       <tr class="sum"><td>타수</td><td>${parSum}</td><td></td>${ks.map(k=>`<td class="num">${sum(k)||'-'}</td>`).join('')}</tr>
       <tr class="sum"><td>정산</td><td></td><td></td>${ks.map(k=>`<td class="num ${cls(total[k])}">${sgn(total[k]).replace(/원$/,'')}</td>`).join('')}</tr>
@@ -679,17 +826,18 @@ async function showDrawAnim(h,auto){
   const N=st.names,hi=st.holes.indexOf(h);
   const colOf=k=>tcol(h,teamOf(h,k))===0?'r':'g';
   const tips=h.sticks||P().map(k=>h.joker===k?'j':colOf(k));
+  const withJ=isDraw();
   let left=h.left;
-  if(!h.sticks||!left){const pool=['r','r','g','g','j'];tips.forEach(t=>{const i=pool.indexOf(t);if(i>=0)pool.splice(i,1);});left=pool[0]||'j';}
-  const all=[...tips,left];
-  const perm=[0,1,2,3,4];for(let i=4;i>0;i--){const j=rnd(i+1);[perm[i],perm[j]]=[perm[j],perm[i]];}
-  const X=[-36,-18,0,18,36],ROT=[-9,-4,0,4,9];
+  if(withJ&&(!h.sticks||!left)){const pool=['r','r','g','g','j'];tips.forEach(t=>{const i=pool.indexOf(t);if(i>=0)pool.splice(i,1);});left=pool[0]||'j';}
+  const all=withJ?[...tips,left]:[...tips];
+  const perm=[...all.keys()];for(let i=perm.length-1;i>0;i--){const j=rnd(i+1);[perm[i],perm[j]]=[perm[j],perm[i]];}
+  const X=withJ?[-36,-18,0,18,36]:[-27,-9,9,27],ROT=withJ?[-9,-4,0,4,9]:[-7,-2,2,7];
   const sticks=all.map((t,i)=>`<div class="stk" style="--x:${X[perm[i]]}px;--r:${ROT[perm[i]]}deg;z-index:${2+perm[i]%3}"><div class="tip t-${t}">${t==='j'?'J':''}</div></div>`).join('');
   const resTxt=k=>tips[k]==='j'?`조커 → ${COLOR[tcol(h,teamOf(h,k))].nm}`:COLOR[tcol(h,teamOf(h,k))].nm;
   const ov=document.createElement('div');ov.className='dov';ov.setAttribute('role','dialog');ov.setAttribute('aria-label','스틱 뽑기');
   ov.innerHTML=`<div class="dbox">
     <div class="dtitle">${hi+1}번 홀 뽑기</div>
-    <div class="dsub">빨강 2 · 초록 2 · 조커 1</div>
+    <div class="dsub">${withJ?'빨강 2 · 초록 2 · 조커 1':'빨강 2 · 초록 2'}</div>
     <div class="cup"><div class="cupin"><div class="cup-back"></div>${sticks}<div class="cup-front"></div></div></div>
     <div class="slots">${P().map(k=>`<div class="slot" data-k="${k}"><div class="sn">${esc(N[k])}</div><div class="mini"></div><div class="sr">?</div></div>`).join('')}</div>
     <div class="dres" aria-live="polite"></div>
@@ -711,9 +859,12 @@ async function showDrawAnim(h,auto){
   const finish=()=>{
     P().forEach(reveal);stEls.slice(0,4).forEach(e=>e.style.opacity='0');
     res.innerHTML=`${badge(h,0)}${esc(teamNames(h,0))} &nbsp;vs&nbsp; ${badge(h,1)}${esc(teamNames(h,1))}`+
-      (h.joker>=0?`<div style="font-size:13px;font-weight:500;opacity:.85">조커 ${esc(N[h.joker])}: 이 홀은 보기로 계산</div>`:`<div style="font-size:13px;font-weight:500;opacity:.85">조커가 남아서 색깔대로 편</div>`);
+      (!withJ?'':h.joker>=0?`<div style="font-size:13px;font-weight:500;opacity:.85">조커 ${esc(N[h.joker])}: 이 홀은 보기로 계산</div>`:`<div style="font-size:13px;font-weight:500;opacity:.85">조커가 남아서 색깔대로 편</div>`);
     const R=compute().rows[hi];
-    if(R&&R.counted&&R.teams){
+    if(R&&R.counted&&R.vnum){
+      const [a,b]=R.vnum,w=R.win;
+      res.innerHTML+=`<div class="dwin">${badge(h,0)}${a} : ${badge(h,1)}${b}<br>${w<0?'동점 · 주고받을 돈 없음':`${tname(h,w)} 승 · ${esc(teamNames(h,w))} 각 +${won(Math.abs(R.stroke[[0,1,2,3].find(k=>teamOf(h,k)===w)]))}`}</div>`;
+    }else if(R&&R.counted&&R.teams){
       const [a,b]=R.teams,w=R.win;
       res.innerHTML+=`<div class="dwin">${badge(h,0)}${a}타 : ${badge(h,1)}${b}타<br>${w<0?(hi===17?'동타 · 상금은 판돈 비율대로 나눔':`동타 · 상금 ${won(R.pool)} 다음 홀로 이월`):`${tname(h,w)} 승 · ${esc(teamNames(h,w))} 각 ${won(R.pool/2)}`}</div>`;
     }
@@ -749,24 +900,26 @@ function updPsum(){
   el.textContent=`판돈 합계 ${won(potTotal())} · 상금 합계 ${won(prizeSum())}`+(Math.abs(d)>=1?` (${won(d)} ${d>0?'초과':'남음'})`:'');
   el.className='psum'+(Math.abs(d)>=1?' bad':'');
 }
-// 설정 영역은 따로 그린다: 메인 화면이 다시 그려져도 펼침 상태/입력 포커스가 유지되도록
+// 설정창(시트). 게임 시작 전에도, 라운드 중간에도 연다.
 function renderSettings(){
-  const N=st.names,ks=P();
+  const N=st.names,ks=P(),m=M(),pot=usePot();
+  const ns=[2,3,4].filter(v=>v>=m.min&&v<=m.max);
   document.getElementById('settings').innerHTML=`
-      <label>내기 방식
-        <select id="mode"><option value="stroke" ${st.mode!=='draw'?'selected':''}>스트로크 (개인전)</option><option value="draw" ${st.mode==='draw'?'selected':''} ${st.n!==4?'disabled':''}>뽑기 (2:2 팀전${st.n!==4?', 4명일 때만':''})</option></select>
-      </label>
-      <label>인원
-        <select id="n">${[2,3,4].map(v=>`<option value="${v}" ${st.n===v?'selected':''}>${v}명</option>`).join('')}</select>
-      </label>
+      <div class="modeline"><span>내기 방식</span><b>${m.name}</b><small>${m.en}</small></div>
+      ${ns.length>1?`<label>인원
+        <select id="n">${ns.map(v=>`<option value="${v}" ${st.n===v?'selected':''}>${v}명</option>`).join('')}</select>
+      </label>`:`<div class="psum">${m.name}는 4명이 합니다.</div>`}
       <div class="two">
         ${ks.map(k=>`<label>플레이어 ${k+1}<input id="n${k}name" value="${esc(N[k])}" maxlength="6" autocomplete="off"></label>`).join('')}
       </div>
       <div class="two">
-        ${isDraw()?'':`<label>타당 금액<input id="unit" type="number" inputmode="numeric" min="0" step="1000" value="${st.unit}"></label>`}
+        ${pot?'':`<label>타당 금액<input id="unit" type="number" inputmode="numeric" min="0" step="1000" value="${st.unit}"></label>`}
         <label>보너스 금액<input id="bonus" type="number" inputmode="numeric" min="0" step="1000" value="${st.bonus}"></label>
       </div>
-      ${isDraw()?`<div class="grp">
+      ${isVegas()?`<label>버디 뒤집기
+          <select id="vegasFlip"><option value="1" ${st.vegasFlip?'selected':''}>사용 (버디 나오면 상대 숫자 뒤집기)</option><option value="0" ${!st.vegasFlip?'selected':''}>사용 안 함</option></select>
+        </label>`:''}
+      ${pot?`<div class="grp">
         <div class="grph">판돈 (사람마다)</div>
         <div class="two">${ks.map(k=>`<label>${esc(N[k])}<input id="stake${k}" type="number" inputmode="numeric" min="0" step="1000" value="${st.stakes[k]}"></label>`).join('')}</div>
         <label>홀당 상금
@@ -792,15 +945,10 @@ function renderSettings(){
         </label>
       </div>
       <p class="rules">
-        ${isDraw()
-          ?`뽑기: 각자 판돈을 내고, 홀마다 정해진 상금을 타수 합이 적은 편 두 명이 반씩 가져갑니다.<br>
-            홀이 끝나고 스코어를 다 넣은 뒤 "뽑기"를 누르면 스틱 5개(빨강2·초록2·조커1)로 편을 뽑습니다. 조커를 뽑은 사람은 한 명 모자란 색 편이 되고, 실제 타수와 상관없이 보기로 계산합니다. 아무도 조커를 안 뽑으면 색깔대로 편입니다.<br>
-            동타면 상금이 다음 홀로 이월되고, 18번 홀까지 동타면 판돈 비율대로 나눕니다.`
-          :`스트로크: 홀마다 모든 두 사람끼리 타수 차 × 타당 × 배수를 진 사람이 이긴 사람에게 냅니다.<br>
-            더블파나 버디(이글 포함)가 한 명이라도 나오면 다음 홀은 ×2 배판입니다. 배판은 겹치지 않습니다(배배판 없음).`}<br>
+        ${MODE_RULES[st.mode]()}<br>
         홀마다 더블파(파×2)가 최대 타수입니다.<br>
         ${isOECD()
-          ?`OECD 룰: 본전 이상 딴 사람(${isDraw()?'받은 상금이 낸 판돈 이상':'지금까지 딴 돈이 플러스'})만 OECD 회원이 되어 OB·벙커·해저드·3퍼트·트리플보기 이상 1번마다 벌금을 냅니다. 회원이 아니면 벌금이 없습니다. 회원 여부는 홀마다 그 홀 시작 시점 기준으로 다시 정해집니다.`
+          ?`OECD 룰: 본전 이상 딴 사람(${pot?'받은 상금이 낸 판돈 이상':'지금까지 딴 돈이 플러스'})만 OECD 회원이 되어 OB·벙커·해저드·3퍼트·트리플보기 이상 1번마다 벌금을 냅니다. 회원이 아니면 벌금이 없습니다. 회원 여부는 홀마다 그 홀 시작 시점 기준으로 다시 정해집니다.`
           :`OB·벙커·해저드는 1번마다 벌금을 냅니다(배수 없음).`} 같은 홀에서 여러 번이면 버튼을 다시 눌러 횟수를 올립니다.${st.fineCap>0?` 한 홀 벌금은 최대 ${won(st.fineCap)}입니다.`:''}<br>
         버디(이글 포함), 롱기, 니어는 배수와 상관없이 나머지 사람이 각각 보너스 금액을 냅니다.
       </p>
@@ -810,33 +958,193 @@ function renderSettings(){
           <button type="button" class="ghostbtn" data-act="export">파일로 내보내기</button>
           <button type="button" class="ghostbtn" data-act="import">파일에서 불러오기</button>
         </div>
-        <div class="psum">라운드 중간이나 끝난 뒤 파일로 저장해 두면, 기록이 지워져도 그대로 복원할 수 있습니다.</div>
+        <div class="psum">진행 중 라운드와 저장된 라운드 기록을 파일 하나로 저장합니다. 기록이 지워져도 그대로 복원할 수 있습니다.</div>
         <input type="file" id="importFile" accept=".json,application/json" hidden>
-      </div>
-      <button class="danger" type="button" data-act="reset">새 라운드 시작 (전체 초기화)</button>`;
+      </div>`;
   document.getElementById('importFile').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(f)importRound(f);e.target.value='';});
 
   const bind=(id,ev,f,blur)=>{
-    const el=document.getElementById(id);
+    const el=document.getElementById(id);if(!el)return;
     el.addEventListener(ev,()=>{f(el.value);save();render();});
     if(blur)el.addEventListener('change',()=>{blur(el);});
   };
   // 이름: 입력 즉시 반영, 비우고 나가면 기본 이름 복원
   ks.forEach(k=>bind(`n${k}name`,'input',v=>st.names[k]=v.trim()||DEF_NAMES[k],el=>{el.value=st.names[k];}));
-  if(isDraw()){
+  if(pot){
     ks.forEach(k=>bind(`stake${k}`,'input',v=>{st.stakes[k]=Math.max(0,Math.round(+v)||0);updPsum();},el=>{el.value=st.stakes[k];}));
     bind('prizeMode','change',v=>{st.prizeMode=v==='manual'?'manual':'even';if(st.prizeMode==='manual'&&!st.prizes.some(Boolean))fillEvenPrizes();},()=>renderSettings());
     if(st.prizeMode==='manual')for(let i=0;i<18;i++)bind(`prize${i}`,'input',v=>{st.prizes[i]=Math.max(0,Math.round(+v)||0);updPsum();},el=>{el.value=st.prizes[i];});
     updPsum();
   }else bind('unit','input',v=>st.unit=Math.max(0,Math.round(+v)||0),el=>{el.value=st.unit;});
+  bind('vegasFlip','change',v=>st.vegasFlip=v==='1');
   bind('bonus','input',v=>st.bonus=Math.max(0,Math.round(+v)||0),el=>{el.value=st.bonus;});
   bind('fine','input',v=>st.fine=Math.max(0,Math.round(+v)||0),el=>{el.value=st.fine;});
   bind('fineCap','input',v=>st.fineCap=Math.max(0,Math.round(+v)||0),el=>{el.value=st.fineCap||'';});
   bind('fineRule','change',v=>st.fineRule=v==='oecd'?'oecd':'all',()=>renderSettings());
   bind('potMode','change',v=>st.potMode=v==='each'?'each':'pot');
   bind('course','change',v=>applyCourse(v,true));
-  bind('n','change',v=>{st.n=+v;if(st.n!==4&&st.mode==='draw')st.mode='stroke';},()=>renderSettings());
-  bind('mode','change',v=>{st.mode=v==='draw'&&st.n===4?'draw':'stroke';},()=>renderSettings());
+  bind('n','change',v=>{st.n=+v;},()=>renderSettings());
+}
+const MODE_RULES={
+  stroke:()=>`스트로크: 홀마다 모든 두 사람끼리 타수 차 × 타당 × 배수를 진 사람이 이긴 사람에게 냅니다.<br>
+    더블파나 버디(이글 포함)가 한 명이라도 나오면 다음 홀은 ×2 배판입니다. 배판은 겹치지 않습니다(배배판 없음).`,
+  draw:()=>`뽑기: 각자 판돈을 내고, 홀마다 정해진 상금을 타수 합이 적은 편 두 명이 반씩 가져갑니다.<br>
+    홀이 끝나고 스코어를 다 넣은 뒤 "뽑기"를 누르면 스틱 5개(빨강2·초록2·조커1)로 편을 뽑습니다. 조커를 뽑은 사람은 한 명 모자란 색 편이 되고, 실제 타수와 상관없이 보기로 계산합니다. 아무도 조커를 안 뽑으면 색깔대로 편입니다.<br>
+    동타면 상금이 다음 홀로 이월되고, 18번 홀까지 동타면 판돈 비율대로 나눕니다.`,
+  skins:()=>`스킨스: 각자 판돈을 내고, 홀마다 정해진 상금(스킨)을 혼자 가장 적게 친 사람이 전부 가져갑니다.<br>
+    공동 1등이면 아무도 못 가져가고 다음 홀로 이월돼 상금이 커집니다. 18번 홀까지 이월되면 판돈 비율대로 나눕니다.`,
+  vegas:()=>`라스베가스: 홀이 끝나고 스틱 4개(빨강2·초록2)로 2:2 편을 뽑습니다. 편 두 사람 점수를 작은 수-큰 수로 붙여 숫자를 만듭니다(4와 5면 45, 4와 10이면 410).<br>
+    ${st.vegasFlip?'상대 편에 버디가 나오면 내 숫자를 뒤집습니다(45 → 54). ':''}숫자가 작은 편이 이기고, 숫자 차이 × 타당 × 배수를 진 편 각자가 이긴 편 각자에게 냅니다.<br>
+    더블파나 버디가 나오면 다음 홀 ×2 배판입니다.`,
+};
+
+
+// ===================== 화면: 시작 / 모드 선택 / 라운드 기록 / 설정창 =====================
+const HKEY='golf-bet-history';
+function loadHist(){try{const v=JSON.parse(localStorage.getItem(HKEY));return Array.isArray(v)?v:[];}catch(e){return [];}}
+function saveHist(v){try{localStorage.setItem(HKEY,JSON.stringify(v));}catch(e){}}
+let ui='home',selMode=null,histSel=null,sheetKind=null;
+function show(u){
+  ui=u;
+  for(const [id,k] of [['scr-home','home'],['scr-modes','modes'],['scr-hist','hist'],['scr-game','game']])document.getElementById(id).hidden=k!==u;
+  document.body.classList.toggle('pxmode',u!=='game');
+  if(u==='home')renderHome();
+  if(u==='modes')renderModes();
+  if(u==='hist')renderHist();
+  if(u==='game')render();
+  window.scrollTo(0,0);
+}
+// 도트 그림: 문자 한 칸 = 색 한 칸
+function pxArt(rows,pal,size,cls){
+  const w=rows[0].length,h=rows.length;let r='';
+  rows.forEach((row,y)=>[...row].forEach((ch,x)=>{if(pal[ch])r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${pal[ch]}"/>`;}));
+  return `<svg class="${cls||''}" viewBox="0 0 ${w} ${h}" width="${w*size}" height="${h*size}" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+}
+const PAL={W:'#f4f1e8',R:'#e5483b',D:'#9c2a20',G:'#c9cfd6',Y:'#ffd23f',O:'#c99a10',B:'#b88b57',N:'#2e9e5b',K:'#111',L:'#7ee08a',U:'#3d6a9a'};
+const SPR={
+  flag:["W...........","WRRRR.......","WRRRRRRR....","WRRRRRRRRRR.","WRRRRRRDD...","WRRRRDD.....","WDD.........","W...........","W...........","W...........","W...........","W...........","W...........","W..........."],
+  ball:[".WWWWW.","WWWWWWW","WWGWWWW","WWWWGWW","WGWWWWW","WWWWWWW",".WWWWW."],
+  stroke:["......WW",".....WW.","....WW..","...WW...","..WW....",".WW.....","YYY.....","YYYY...."],
+  draw:["R.N.R.N.","R.N.R.N.","B.B.B.B.","B.B.B.B.","B.B.B.B.","B.B.B.B.","B.B.B.B.","B.B.B.B."],
+  skins:["..YYYY..",".YOOOOY.","YOYYYYOY","YOYOOYOY","YOYOOYOY","YOYYYYOY",".YOOOOY.","..YYYY.."],
+  vegas:["WWWWWWWW","WKWWWWKW","WWWWWWWW","WWWKKWWW","WWWKKWWW","WWWWWWWW","WKWWWWKW","WWWWWWWW"],
+};
+const MODE_DESC={
+  stroke:['타수 차이만큼 서로 주고받는 가장 기본 내기','모든 사람끼리 1:1로 계산 (타수 차 × 타당)','더블파·버디가 나오면 다음 홀 ×2 배판','2~4명'],
+  draw:['홀이 끝나면 스틱을 뽑아 2:2 편을 정한다','편 타수 합이 적은 쪽이 홀 상금을 반씩','조커를 뽑으면 그 홀은 무조건 보기','동타면 상금 이월 · 4명'],
+  skins:['홀마다 걸린 상금(스킨)을 혼자 1등이 독식','공동 1등이면 다음 홀로 이월돼 판이 커짐','판돈은 사람마다 따로 정할 수 있음','2~4명'],
+  vegas:['홀이 끝나면 스틱으로 2:2 편을 뽑는다','두 사람 점수를 붙여 숫자로 (4·5 → 45)','상대 편이 버디면 내 숫자 뒤집기 (45 → 54)','숫자 차이 × 타당 · 4명'],
+};
+const STARS=[[8,12],[22,6],[37,18],[52,9],[66,15],[81,7],[92,20],[14,28],[47,30],[75,26],[30,40],[88,38],[5,44],[60,42]];
+function renderHome(){
+  const hs=loadHist();
+  const {rows}=compute();const done=rows.filter(x=>x.counted).length;
+  document.getElementById('scr-home').innerHTML=`
+  <div class="stars">${STARS.map(([x,y],i)=>`<i style="left:${x}%;top:${y}%;animation-delay:${(i%5)*.4}s"></i>`).join('')}</div>
+  <div class="hm">
+    <h1 class="logo"><span class="l1">GOLF</span><span class="l2">BET</span></h1>
+    <div class="tagline">골프 내기 정산기</div>
+    <div class="scene">
+      <div class="hole"></div>
+      ${pxArt(SPR.flag,PAL,6,'flag')}
+      ${pxArt(SPR.ball,PAL,5,'ball')}
+      <div class="ground"></div>
+    </div>
+    <div class="menu">
+      ${st.active?`<button class="pxbtn y" data-act="resume">▶ 이어하기<small>${M().name} · ${done}/18홀 · ${esc(COURSES[st.course].name)}</small></button>`:''}
+      <button class="pxbtn ${st.active?'':'y'}" data-act="newgame">새 게임</button>
+      <button class="pxbtn" data-act="history">라운드 기록<small>${hs.length?`${hs.length}개 저장됨`:'아직 없음'}</small></button>
+    </div>
+    <div class="blink">PRESS START</div>
+    <div class="foot">기록은 이 휴대폰에만 저장됩니다</div>
+  </div>`;
+}
+function renderModes(){
+  if(!selMode)selMode=st.mode;
+  const card=id=>{
+    const m=MODES[id],on=id===selMode;
+    return `<button class="mcard ${on?'on':''}" data-act="pickmode" data-m="${id}" aria-expanded="${on}">
+        <span class="cur">▶</span>${pxArt(SPR[id],PAL,4,'mico')}
+        <span class="mn"><b>${m.name}</b><small>${m.en} · ${m.min===m.max?m.min+'P':m.min+'-'+m.max+'P'}</small></span>
+      </button>
+      ${on?`<div class="mdesc">${MODE_DESC[id].map((t,i)=>`<p style="--d:${i}">${esc(t)}</p>`).join('')}
+        <button class="pxbtn y" data-act="startmode">이 모드로 시작</button></div>`:''}`;
+  };
+  document.getElementById('scr-modes').innerHTML=`
+  <div class="ms-h"><button class="pxback" data-act="home" aria-label="처음으로">◀</button><div class="ms-t">MODE SELECT</div></div>
+  <div class="ms-sub">모드를 누르면 어떤 내기인지 설명이 나옵니다</div>
+  <div class="mlist ${selMode?'has':''}">${Object.keys(MODES).map(card).join('')}</div>`;
+}
+function renderHist(){
+  const hs=loadHist().slice().reverse();
+  const el=document.getElementById('scr-hist');
+  const rec=histSel&&hs.find(x=>x.id===histSel);
+  if(!rec){
+    el.innerHTML=`
+    <div class="ms-h"><button class="pxback" data-act="home" aria-label="처음으로">◀</button><div class="ms-t">RECORDS</div></div>
+    <div class="ms-sub">${hs.length?'라운드를 누르면 자세히 볼 수 있습니다':'아직 저장된 라운드가 없습니다. 게임 화면에서 "라운드 종료"를 누르면 여기에 저장됩니다.'}</div>
+    <div class="mlist">${hs.map(x=>{
+      const best=Math.max(...x.total),wi=x.total.indexOf(best);
+      return `<button class="mcard" data-act="openrec" data-id="${esc(x.id)}">
+        <span class="mn"><b>${esc(x.label)}</b><small>${esc((MODES[x.mode]||MODES.stroke).en)} · ${x.holesDone}/18</small>
+        <span class="hsum">${esc((MODES[x.mode]||MODES.stroke).name)} · ${esc(x.names.join(', '))}${best>0?` · 1등 ${esc(x.names[wi])} ${sgn(best)}`:''}</span></span></button>`;}).join('')}</div>`;
+    return;
+  }
+  const cs=COURSES[rec.course];
+  el.innerHTML=`
+  <div class="ms-h"><button class="pxback" data-act="histback" aria-label="목록으로">◀</button><div class="ms-t">${esc(rec.label)}</div></div>
+  <div class="ms-sub">${esc((MODES[rec.mode]||MODES.stroke).name)} · ${esc(cs?cs.name:'')} · ${rec.holesDone}/18홀</div>
+  <div class="hcard">
+    <div class="hh">최종 결과</div>
+    ${rec.names.map((nm,k)=>`<div class="hrow"><span>${esc(nm)}${rec.stakes?`<small> 판돈 ${won(rec.stakes[k])} · 상금 ${won(rec.prizeTot[k])}</small>`:''}</span><b class="${rec.total[k]>0?'up':rec.total[k]<0?'dn':''}">${sgn(rec.total[k])}</b></div>`).join('')}
+  </div>
+  <div class="hcard">
+    <div class="hh">${rec.stakes?'보너스 정산':'정산'}</div>
+    ${rec.transfers.length?rec.transfers.map(t=>`<div class="hrow"><span>${esc(rec.names[t.from])} → ${esc(rec.names[t.to])}</span><b>${won(t.amt)}</b></div>`).join(''):'<div class="hrow"><span>주고받을 돈 없음</span></div>'}
+    ${rec.potBy&&rec.potBy.some(Boolean)?`<div class="hrow"><span>공금 (캐디피 등)</span><b>${won(rec.potBy.reduce((a,b)=>a+b,0))}</b></div>`:''}
+  </div>
+  <div class="hcard htbl"><table>
+    <thead><tr><th>홀</th><th>Par</th>${rec.names.map(nm=>`<th>${esc(nm)}</th>`).join('')}</tr></thead>
+    <tbody>${rec.pars.map((par,i)=>`<tr><td>${i+1}</td><td>${par}</td>${rec.names.map((_,k)=>`<td>${rec.scores[i][k]??'-'}</td>`).join('')}</tr>`).join('')}
+      <tr class="sum"><td>합계</td><td>${rec.pars.reduce((a,b)=>a+b,0)}</td>${rec.names.map((_,k)=>`<td>${rec.scores.reduce((a,x)=>a+(x[k]??0),0)||'-'}</td>`).join('')}</tr>
+    </tbody></table></div>
+  <button class="pxbtn delbtn" data-act="delrec" data-id="${esc(rec.id)}">이 기록 삭제</button>`;
+}
+// 새 라운드 준비: 이름·금액·코스 같은 설정은 이어 쓰고 스코어만 새로
+function freshRound(mode){
+  const keep={names:[...st.names],unit:st.unit,bonus:st.bonus,fine:st.fine,potMode:st.potMode,fineRule:st.fineRule,fineCap:st.fineCap,
+    stakes:[...st.stakes],prizeMode:st.prizeMode,prizes:[...st.prizes],vegasFlip:st.vegasFlip,n:st.n};
+  st=blank(st.course);Object.assign(st,keep);
+  st.mode=mode;const m=MODES[mode];st.n=Math.min(m.max,Math.max(m.min,st.n));st.active=false;
+}
+function makeRecord(){
+  const {rows,total,potBy,prizeTot,sideTot}=compute();
+  const n=st.n,pot=usePot(),d=new Date(),p2=x=>String(x).padStart(2,'0');
+  const date=`${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+  const same=loadHist().filter(x=>x.date===date).length;
+  const tf=transfers(pot?sideTot:total.map((v,k)=>v+potBy[k]));
+  return{id:date+'-'+d.getTime(),date,label:same?`${date} (${same+1})`:date,endedAt:d.toISOString(),
+    mode:st.mode,course:st.course,n,names:st.names.slice(0,n),holesDone:rows.filter(x=>x.counted).length,
+    total:total.map(Math.round),potBy:potBy.map(Math.round),prizeTot:prizeTot.map(Math.round),stakes:pot?st.stakes.slice(0,n):null,
+    transfers:tf.map(t=>({from:t.from,to:t.to,amt:Math.round(t.amt)})),
+    pars:st.holes.map(h=>h.par),scores:st.holes.map(h=>h.s.slice(0,n).map((v,k)=>h.t[k]||rows[st.holes.indexOf(h)].counted?v:null))};
+}
+function openSheet(kind){
+  sheetKind=kind;
+  document.getElementById('sheetTitle').textContent=kind==='setup'?`게임 설정 · ${M().name}`:'설정 · 규칙';
+  document.getElementById('sheetFoot').innerHTML=kind==='setup'
+    ?'<button type="button" class="startbtn" data-act="startgame">게임 시작</button>'
+    :'<button type="button" class="startbtn" data-act="closesheet">닫기</button>';
+  renderSettings();
+  document.getElementById('sheet').hidden=false;
+  document.body.classList.add('noscroll');
+  document.querySelector('#sheet .set').scrollTop=0;
+}
+function closeSheet(){
+  document.getElementById('sheet').hidden=true;
+  document.body.classList.remove('noscroll');
+  if(sheetKind==='setup'&&!st.active)show('modes');
+  sheetKind=null;
 }
 
 document.addEventListener('click',e=>{
@@ -864,10 +1172,38 @@ document.addEventListener('click',e=>{
     case 'import':document.getElementById('importFile').click();return;
     case 'evenprizes':fillEvenPrizes();save();renderSettings();render();return;
     case 'rename':{
-      // 설정을 열고 해당 이름 칸에 바로 커서
-      const box=document.getElementById('setbox');box.open=true;
+      // 설정창을 열고 해당 이름 칸에 바로 커서
+      if(!sheetKind)openSheet('mid');
       const el=document.getElementById(`n${p}name`);
       if(el){el.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>{el.focus();el.select();},300);}
+      return;}
+    case 'opensheet':openSheet('mid');return;
+    case 'closesheet':closeSheet();return;
+    case 'home':histSel=null;show('home');return;
+    case 'resume':show('game');return;
+    case 'history':histSel=null;show('hist');return;
+    case 'openrec':histSel=b.dataset.id;renderHist();window.scrollTo(0,0);return;
+    case 'histback':histSel=null;renderHist();return;
+    case 'delrec':{
+      if(!armOrRun(b,'delrec','한 번 더 누르면 삭제'))return;
+      saveHist(loadHist().filter(x=>x.id!==b.dataset.id));histSel=null;renderHist();toast('기록을 삭제했습니다',null);return;}
+    case 'newgame':
+      if(st.active&&!armOrRun(b,'newgame','진행 중 라운드가 지워집니다 · 한 번 더'))return;
+      selMode=null;show('modes');return;
+    case 'pickmode':{
+      selMode=b.dataset.m;renderModes();
+      const d=document.querySelector('.mdesc');if(d)d.scrollIntoView({behavior:'smooth',block:'nearest'});return;}
+    case 'startmode':freshRound(selMode||'stroke');save();openSheet('setup');return;
+    case 'startgame':
+      st.active=true;st.cur=0;save();
+      document.getElementById('sheet').hidden=true;document.body.classList.remove('noscroll');sheetKind=null;
+      show('game');toast(`${M().name} 시작! 1번 홀`,null);return;
+    case 'endround':{
+      if(!armOrRun(b,'endround','한 번 더 누르면 종료하고 기록 저장'))return;
+      const rec=makeRecord();
+      if(rec.holesDone>0){const hs=loadHist();hs.push(rec);saveHist(hs);}
+      freshRound(st.mode);save();show('home');
+      toast(rec.holesDone>0?`${rec.label} 라운드를 기록했습니다`:'계산된 홀이 없어 기록 없이 종료했습니다',null);
       return;}
     case 'clearhole':{
       const empty=!touched(h)&&!h.ob.some(Boolean)&&!h.bk.some(Boolean)&&!h.hz.some(Boolean)&&!h.tp.some(Boolean)&&h.long<0&&h.near<0;
@@ -875,22 +1211,12 @@ document.addEventListener('click',e=>{
       const snap=JSON.stringify(st);
       Object.assign(h,blankHole(h.par),{pair:h.pair,joker:h.joker});
       toast(`${st.cur+1}번 홀을 기본값으로 되돌렸습니다`,snap);break;}
-    case 'reset':{
-      if(!armOrRun(b,'reset','한 번 더 누르면 전체 초기화'))return;
-      const snap=JSON.stringify(st);
-      const {n,names,unit,bonus,fine,potMode,mode,stakes,prizeMode,prizes,fineRule,fineCap}=st;
-      st=blank(st.course);Object.assign(st,{n,names:[...names],unit,bonus,fine,potMode,mode,stakes:[...stakes],prizeMode,prizes:[...prizes],fineRule,fineCap});
-      save();renderSettings();render();
-      document.getElementById('setbox').open=false;
-      window.scrollTo({top:0,behavior:'smooth'});
-      toast('새 라운드를 시작했습니다',snap);
-      return;}
     default:return;
   }
   save();render();
 });
 renderSettings();
-render();
+show('home');
 // 오프라인 실행용 서비스 워커
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
 </script>
