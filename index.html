@@ -135,6 +135,12 @@ details.fix[open]{display:grid;gap:8px}
 .rc.on{background:#ffd23f;color:#2a1f00;transform:scale(1.04)}
 .rc.win{animation:pop .4s ease-out}
 .hcpgrid{display:grid;gap:8px}
+.lshead{font-size:14px;font-weight:700;color:var(--ink)}
+.teams .brow > span.ell{width:56px;flex:none;font-size:14px;color:var(--ink)}
+.seg button.on.lsb-r{background:var(--red);color:#fff}
+.seg button.on.lsb-g{background:#2e9e5b;color:#fff}
+.seg button.on.lsb-j{background:var(--ink);color:var(--paper)}
+.drawhint.neg{color:var(--red);font-weight:700}
 .hrow2{display:grid;grid-template-columns:minmax(0,1fr) 110px 72px auto;align-items:center;gap:8px}
 .hrow2 > span{font-size:14px;font-weight:700;color:var(--ink)}
 .set .hrow2 input{height:38px}
@@ -271,7 +277,8 @@ body.noscroll{overflow:hidden}
 .sheet-h{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
 .sheet-h b{font-size:17px}
 .sheet-x{color:var(--green);font-weight:700;padding:6px 8px}
-.sheet .set{overflow:auto;padding:14px 16px 18px;-webkit-overflow-scrolling:touch}
+.sheet .set{overflow:auto;padding:14px 16px 18px;-webkit-overflow-scrolling:touch;grid-auto-rows:max-content;align-content:start}
+.set > .seg{min-height:38px;flex:none}
 .sheet-f{padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
 .startbtn{width:100%;height:52px;border-radius:12px;background:var(--green);color:#fff;font-size:17px;font-weight:700}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .startbtn{color:#0f1512}}
@@ -446,7 +453,7 @@ function holeSub(i){return i<9?`전반 ${i+1}번`:`후반 ${i-8}번`;}
 const fill=v=>Array(MAXP).fill(v);
 const P=()=>[...Array(st.n).keys()];           // 이번 라운드 참가자 인덱스
 function blankHole(par){return{par,s:fill(null),t:fill(false),ob:fill(0),bk:fill(0),hz:fill(0),tp:fill(0),long:-1,near:-1,pair:0,joker:-1,c0:0,sticks:null,left:null}}
-function blank(pars=STD_PARS,courseName=''){return{n:DEF_N,names:[...DEF_NAMES],unit:1000,bonus:5000,fine:2000,potMode:'pot',fineRule:'all',fineCap:0,oecdPct:60,oecdAmt:20000,mode:'stroke',vegasFlip:true,teeOrder:[0,1,2,3],husFirst:-1,husRank:2,hcpN:fill(0),hcpDir:fill(1),hcpUnit:1000,active:false,stakes:fill(45000),prizeMode:'flat',prizeFlat:10000,prizes:Array(18).fill(0),cur:0,courseName,holes:pars.map(blankHole)}}
+function blank(pars=STD_PARS,courseName=''){return{n:DEF_N,names:[...DEF_NAMES],unit:1000,bonus:5000,fine:2000,potMode:'pot',fineRule:'all',fineCap:0,oecdPct:60,oecdAmt:20000,mode:'stroke',vegasFlip:true,teeOrder:[0,1,2,3],husFirst:-1,husRank:2,hcpN:fill(0),hcpDir:fill(1),hcpUnit:1000,hcpOn:false,drawSrc:'auto',active:false,stakes:fill(45000),prizeMode:'flat',prizeFlat:10000,prizes:Array(18).fill(0),cur:0,courseName,holes:pars.map(blankHole)}}
 const touched=h=>h.t.some(Boolean);
 // 저장본 검증 + 누락 필드 보정 (예전 2인용 저장본이나 깨진 값으로 화면이 죽지 않도록)
 function normalize(raw){
@@ -475,7 +482,7 @@ function normalize(raw){
     n,active,
     names:arr(raw.names,(v,k)=>(typeof v==='string'&&v.trim())||DEF_NAMES[k]),
     unit:num(raw.unit,d.unit), bonus:num(raw.bonus,d.bonus),
-    fine:num(raw.fine,d.fine), fineRule:raw.fineRule==='oecd'?'oecd':'all', fineCap:num(raw.fineCap,0), oecdPct:[50,60,70,80,100].includes(+raw.oecdPct)?+raw.oecdPct:60, oecdAmt:num(raw.oecdAmt,20000), potMode:['each','prize'].includes(raw.potMode)?raw.potMode:'pot', mode:MODES[raw.mode]?raw.mode:'stroke', vegasFlip:raw.vegasFlip!==false, husFirst:[0,1,2,3].includes(raw.husFirst)?raw.husFirst:-1, ...hcpFromRaw(raw,arr), hcpUnit:num(raw.hcpUnit,1000), husRank:[1,2,3,4].includes(raw.husRank)?raw.husRank:2, teeOrder:Array.isArray(raw.teeOrder)&&[...raw.teeOrder].sort().join()==='0,1,2,3'?raw.teeOrder:[0,1,2,3], stakes:arr(raw.stakes,(v,k)=>num(v,num(raw.stake,d.stakes[k]))),
+    fine:num(raw.fine,d.fine), fineRule:raw.fineRule==='oecd'?'oecd':'all', fineCap:num(raw.fineCap,0), oecdPct:[50,60,70,80,100].includes(+raw.oecdPct)?+raw.oecdPct:60, oecdAmt:num(raw.oecdAmt,20000), potMode:['each','prize'].includes(raw.potMode)?raw.potMode:'pot', mode:MODES[raw.mode]?raw.mode:'stroke', vegasFlip:raw.vegasFlip!==false, husFirst:[0,1,2,3].includes(raw.husFirst)?raw.husFirst:-1, ...hcpFromRaw(raw,arr), hcpOn:raw.hcpOn===true, drawSrc:raw.drawSrc==='live'?'live':'auto', hcpUnit:num(raw.hcpUnit,1000), husRank:[1,2,3,4].includes(raw.husRank)?raw.husRank:2, teeOrder:Array.isArray(raw.teeOrder)&&[...raw.teeOrder].sort().join()==='0,1,2,3'?raw.teeOrder:[0,1,2,3], stakes:arr(raw.stakes,(v,k)=>num(v,num(raw.stake,d.stakes[k]))),
     prizeMode:['manual','flat'].includes(raw.prizeMode)?raw.prizeMode:'even', prizeFlat:num(raw.prizeFlat,10000),
     prizes:[...Array(18).keys()].map(i=>num(Array.isArray(raw.prizes)?raw.prizes[i]:undefined,d.prizes[i])),
     cur:Number.isInteger(raw.cur)&&raw.cur>=0&&raw.cur<18?raw.cur:0,
@@ -567,14 +574,24 @@ let pendingAnim=false;
 function drawSticks(h){
   const sticks=isDraw()?['r','r','g','g','j']:['r','r','g','g'];
   for(let i=sticks.length-1;i>0;i--){const j=rnd(i+1);[sticks[i],sticks[j]]=[sticks[j],sticks[i]];}
-  const got=sticks.slice(0,4), jk=got.indexOf('j');
-  h.sticks=[...got];h.left=sticks[4]||null;
+  applySticks(h,sticks.slice(0,4),sticks[4]||null);
+}
+// 현장 뽑기 결과가 말이 되는지: 빨강2·초록2, 또는 조커1 + 빨강·초록 각 1개 이상
+function sticksValid(a){
+  if(a.some(x=>!x))return false;
+  const c=t=>a.filter(x=>x===t).length,r=c('r'),g=c('g'),j=c('j');
+  return (j===0&&r===2&&g===2)||(j===1&&r>=1&&g>=1&&r<=2&&g<=2);
+}
+function applySticks(h,got,left){
+  const jk=got.indexOf('j');
+  h.sticks=[...got];h.left=left;
   const col=[...got];
   if(jk>=0)col[jk]=col.filter(x=>x==='r').length<2?'r':'g';
   h.joker=jk;
   h.c0=col[0]==='r'?0:1;
   // pair = 0번 플레이어와 같은 색인 사람
   h.pair=[1,2,3].find(k=>col[k]===col[0]);
+  h.ls=null;
 }
 const teamOf=(h,k)=>k===0||k===h.pair?0:1;
 // 팀 색: 0번 플레이어 편의 색(c0)과 반대편 색
@@ -600,7 +617,7 @@ function hcpPlan(){
     return{eff:ks.map(k=>sg[k]||-R/zero.length),ok:true,auto:true,R,G:R};}
   return{eff:sg,ok:R===G,auto:false,R,G};
 }
-const hcpMoney=k=>{const pl=hcpPlan();return pl.ok?(pl.eff[k]||0)*st.hcpUnit:0;};
+const hcpMoney=k=>{if(!st.hcpOn)return 0;const pl=hcpPlan();return pl.ok?(pl.eff[k]||0)*st.hcpUnit:0;};
 const hasHcp=()=>P().some(k=>hcpMoney(k));
 // 예전 저장본(핸디 수준 방식)은 같은 돈이 되도록 받음/줌 타수로 바꿔 둔다
 function hcpFromRaw(raw,arr){
@@ -824,16 +841,19 @@ function render(){
         <button class="ghostbtn" data-act="teeedit">${teeEdit?'취소':'티샷 순서 바꾸기 (순서대로 누르기)'}</button>`:''}
     </div>`:'';
   const husBox=!isHus()||h.hus==null?'':h.hus<0?`<div class="teams">
-      <button class="drawbig" data-act="husdraw">1번 홀 후세인 뽑기</button>
+      ${st.drawSrc==='live'?`<div class="lshead">현장에서 뽑은 1번 홀 후세인을 누르세요</div>
+        <div class="seg" style="--k:4">${P().map(k=>`<button data-act="husset" data-p="${k}">${esc(N[k])}</button>`).join('')}</div>`
+      :'<button class="drawbig" data-act="husdraw">1번 홀 후세인 뽑기</button>'}
       <div class="drawhint">1번 홀 후세인은 뽑기로 정합니다. 2번 홀부터는 직전 홀 ${st.husRank}등이 후세인이 됩니다.</div>
     </div>`:`<div class="teams">
       <div class="vs"><span><i class="tm hu">후세인</i>${esc(N[h.hus])}</span><b>vs</b><span>${P().filter(k=>k!==h.hus).map(k=>esc(N[k])).join('·')}</span>
-        ${c===0?'<button class="redraw ghost" data-act="husdraw">다시 뽑기</button>':''}</div>
+        ${c===0?(st.drawSrc==='live'?'<button class="redraw ghost" data-act="husclear">다시 입력</button>':'<button class="redraw ghost" data-act="husdraw">다시 뽑기</button>'):''}</div>
       <div class="drawhint" style="text-align:left">${c===0?'1번 홀 후세인은 뽑기로 정했습니다':`직전 홀 ${st.husRank}등이 후세인입니다${h.husKeep?` (${st.husRank}등이 동타라 직전 후세인 유지)`:''}`} · 후세인 타수 × 3과 나머지 3명 타수 합을 비교</div>
     </div>`;
   const teamBox=isHus()?husBox:isVegas()?vegasBox:isTeam()?`<div class="teams">
       ${h.pair?`<div class="vs"><span>${badge(h,0)}${esc(teamNames(h,0))}</span><b>vs</b><span>${badge(h,1)}${esc(teamNames(h,1))}</span>
         <button class="redraw ghost" data-act="showdraw">뽑기 다시 보기</button></div>`
+      :st.drawSrc==='live'?liveStickBox(h)
       :`<button class="drawbig" data-act="draw">스코어 입력 끝 · 뽑기!</button>
         <div class="drawhint">편은 홀이 끝난 뒤에 뽑습니다. 스코어를 다 넣고 누르세요.</div>`}
       <details class="fix" ${fixOpen?'open':''}><summary>직접 고치기 (실제로 뽑은 결과가 다를 때)</summary>
@@ -1035,6 +1055,14 @@ async function showDrawAnim(h,auto){
   finish();
 }
 // 1번 홀 후세인 뽑기: 이름을 돌아가며 비추다가 점점 느려지며 결과에 멈춘다
+// 현장 뽑기 입력: 사람마다 뽑은 스틱 색을 누른다
+function liveStickBox(h){
+  const N=st.names,ls=h.ls||[null,null,null,null],opts=isDraw()?[['r','빨강'],['g','초록'],['j','조커']]:[['r','빨강'],['g','초록']];
+  const full=ls.slice(0,4).every(Boolean),bad=full&&!sticksValid(ls);
+  return `<div class="lshead">현장에서 뽑은 스틱을 사람마다 누르세요</div>
+    ${P().map(k=>`<div class="brow"><span class="ell">${esc(N[k])}</span><div class="seg" style="--k:${opts.length}">${opts.map(([v,t])=>`<button class="${ls[k]===v?'on':''} lsb-${v}" data-act="stick" data-p="${k}" data-v2="${v}">${t}</button>`).join('')}</div></div>`).join('')}
+    <div class="drawhint ${bad?'neg':''}">${bad?'빨강 2·초록 2, 또는 조커 1개에 빨강·초록이 섞이게 다시 눌러 주세요.':'4명을 다 누르면 바로 편이 정해집니다. 조커는 한 명 모자란 색 편이 됩니다.'}</div>`;
+}
 function husRoulette(target){
   const N=st.names,ks=P();
   const ov=document.createElement('div');ov.className='dov';ov.setAttribute('role','dialog');ov.setAttribute('aria-label','후세인 뽑기');
@@ -1081,13 +1109,16 @@ function renderSettings(){
         ${ks.map(k=>`<label>플레이어 ${k+1}<input id="n${k}name" value="${esc(N[k])}" maxlength="6" autocomplete="off"></label>`).join('')}
       </div>
       <div class="sec-h">핸디 (선지급)</div>
-      <div class="hcpgrid">
+      <div class="seg" style="--k:2"><button type="button" class="${!st.hcpOn?'on':''}" data-act="hcpon" ${!st.hcpOn?'disabled':''}>핸디 없음</button><button type="button" class="${st.hcpOn?'on':''}" data-act="hcpon" ${st.hcpOn?'disabled':''}>핸디 있음</button></div>
+      ${st.hcpOn?`<div class="hcpgrid">
         ${ks.map(k=>`<div class="hrow2"><span class="ell">${esc(N[k])}</span>
           <div class="seg" style="--k:2"><button type="button" class="${st.hcpDir[k]>=0?'on':''}" data-act="hcpdir" data-p="${k}" data-v="1">받음</button><button type="button" class="${st.hcpDir[k]<0?'on':''}" data-act="hcpdir" data-p="${k}" data-v="-1">줌</button></div>
           <input id="hcp${k}" type="number" inputmode="numeric" min="0" max="99" step="1" value="${st.hcpN[k]||''}" placeholder="0" aria-label="${esc(N[k])} 핸디 타수"><small>타</small></div>`).join('')}
       </div>
       <label>핸디 1타 금액<input id="hcpUnit" type="number" inputmode="numeric" min="0" step="1000" value="${st.hcpUnit}"></label>
-      <div class="psum" id="hcpsum">${hcpSummary()}</div>
+      <div class="psum" id="hcpsum">${hcpSummary()}</div>`:''}
+      ${isDraw()||isHus()?`<div class="sec-h">${isHus()?'1번 홀 후세인 뽑기':'뽑기'}</div>
+      <div class="seg" style="--k:2"><button type="button" class="${st.drawSrc!=='live'?'on':''}" data-act="drawsrc" data-v2="auto">앱에서 자동 뽑기</button><button type="button" class="${st.drawSrc==='live'?'on':''}" data-act="drawsrc" data-v2="live">현장에서 뽑고 입력</button></div>`:''}
       <div class="sec-h">금액</div>
       <div class="two">
         ${isHus()?`<label>후세인 순위<select id="husRank">${[1,2,3,4].map(v=>`<option value="${v}" ${st.husRank===v?'selected':''}>직전 홀 ${v}등${v===2?' (보통)':''}</option>`).join('')}</select></label>`:''}
@@ -1352,7 +1383,7 @@ function updParSums(){
 // 새 라운드 준비: 이름·금액·코스 같은 설정은 이어 쓰고 스코어만 새로
 function freshRound(mode){
   const keep={names:[...st.names],unit:st.unit,bonus:st.bonus,fine:st.fine,potMode:st.potMode,fineRule:st.fineRule,fineCap:st.fineCap,oecdPct:st.oecdPct,oecdAmt:st.oecdAmt,
-    stakes:[...st.stakes],prizeMode:st.prizeMode,prizeFlat:st.prizeFlat,prizes:[...st.prizes],vegasFlip:st.vegasFlip,teeOrder:[...st.teeOrder],husRank:st.husRank,hcpN:[...st.hcpN],hcpDir:[...st.hcpDir],hcpUnit:st.hcpUnit,n:st.n};
+    stakes:[...st.stakes],prizeMode:st.prizeMode,prizeFlat:st.prizeFlat,prizes:[...st.prizes],vegasFlip:st.vegasFlip,teeOrder:[...st.teeOrder],husRank:st.husRank,hcpN:[...st.hcpN],hcpDir:[...st.hcpDir],hcpUnit:st.hcpUnit,hcpOn:st.hcpOn,drawSrc:st.drawSrc,n:st.n};
   st=blank(st.holes.map(h=>h.par),st.courseName);Object.assign(st,keep);
   st.mode=mode;const m=MODES[mode];st.n=Math.min(m.max,Math.max(m.min,st.n));st.active=false;
 }
@@ -1407,6 +1438,15 @@ document.addEventListener('click',e=>{
       drawSticks(h);pendingAnim=true;
       if(had)toast(`다시 뽑았습니다`,snap);break;}
     case 'showdraw':showDrawAnim(h,false);return;
+    case 'stick':{
+      h.ls=h.ls||[null,null,null,null];h.ls[p]=b.dataset.v2;
+      if(sticksValid(h.ls.slice(0,4))){const used=[...h.ls];const pool=['r','r','g','g','j'];used.forEach(t=>{const x=pool.indexOf(t);if(x>=0)pool.splice(x,1);});
+        applySticks(h,used.slice(0,4),isDraw()?pool[0]||null:null);save();render();toast('편이 정해졌습니다',null);return;}
+      break;}
+    case 'husset':st.husFirst=p;break;
+    case 'husclear':st.husFirst=-1;break;
+    case 'drawsrc':st.drawSrc=b.dataset.v2==='live'?'live':'auto';save();render();renderSettings();return;
+    case 'hcpon':st.hcpOn=!st.hcpOn;save();render();renderSettings();return;
     case 'hcpdir':st.hcpDir[p]=v<0?-1:1;save();render();renderSettings();return;
     case 'husdraw':{
       const snap=st.husFirst>=0?JSON.stringify(st):null;
