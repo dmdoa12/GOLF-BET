@@ -417,29 +417,9 @@ details.rulebox .rules{padding:0 12px 12px}
 <script>
 const KEY='golf-bet-v1';
 const MAXP=4, DEF_N=4, DEF_NAMES=['A','B','C','D'];
-// 골프장 데이터: 골프장마다 9홀 코스(nine) 여러 개. 라운드는 전반(out)·후반(inn) 코스를 하나씩 골라 18홀.
-const CLUBS_BUILTIN=[
-  {id:'zensfield',name:'젠스필드 CC',region:'충북 음성',note:'공개 스코어카드 기준 · 현장 스코어카드로 확인 권장',
-    nines:[{name:'드래곤',pars:[4,4,5,4,3,5,4,3,4]},{name:'힐',pars:[4,5,4,4,3,4,4,3,5]}]},
-  {id:'basic',name:'기본 코스 (파72)',region:'',note:'골프장 정보가 없을 때 쓰는 표준 파',
-    nines:[{name:'OUT',pars:[4,4,3,4,5,4,3,4,5]},{name:'IN',pars:[4,3,4,5,4,4,3,5,4]}]},
-];
-const CKEY='golf-bet-courses';
-function loadClubs(){try{const v=JSON.parse(localStorage.getItem(CKEY));return Array.isArray(v)?v.filter(validClub):[];}catch(e){return [];}}
-function saveClubs(v){try{localStorage.setItem(CKEY,JSON.stringify(v));}catch(e){}}
-function validClub(c){return c&&typeof c.id==='string'&&typeof c.name==='string'&&Array.isArray(c.nines)&&c.nines.length>=1&&c.nines.every(n=>n&&Array.isArray(n.pars)&&n.pars.length===9&&n.pars.every(p=>[3,4,5,6].includes(p)));}
-// 직접 추가한 골프장 + 내장 골프장(같은 id를 직접 고쳤으면 고친 것이 우선)
-function allClubs(){const mine=loadClubs(),ids=new Set(mine.map(c=>c.id));return [...mine.map(c=>({...c,custom:true,override:CLUBS_BUILTIN.some(b=>b.id===c.id)})),...CLUBS_BUILTIN.filter(b=>!ids.has(b.id))];}
-const clubById=id=>allClubs().find(c=>c.id===id)||CLUBS_BUILTIN[1];
-const DEF_FIELD={club:'zensfield',out:0,inn:1};
-function fixField(f){
-  const c=clubById(f&&f.club),k=c.nines.length,ix=v=>Number.isInteger(v)&&v>=0&&v<k?v:0;
-  return{club:c.id,out:ix(f&&f.out),inn:f&&Number.isInteger(f.inn)&&f.inn>=0&&f.inn<k?f.inn:(k>1?1:0)};
-}
-const fieldPars=f=>{const c=clubById(f.club);return [...c.nines[f.out].pars,...c.nines[f.inn].pars];};
-const fieldLabel=f=>{const c=clubById(f.club);return c.nines.length>1||c.nines[0].name?`${c.name} · ${c.nines[f.out].name} → ${c.nines[f.inn].name}`:c.name;};
-// 예전 저장본의 코스 값
-const LEGACY_FIELD={zdh:{club:'zensfield',out:0,inn:1},zhd:{club:'zensfield',out:1,inn:0},std:{club:'basic',out:0,inn:1}};
+// 코스: 골프장 데이터 없이 사용자가 홀별 파를 직접 넣는다. 코스 이름과 파는 다음 라운드에도 이어 쓴다.
+const STD_PARS=[4,4,3,4,5,4,3,4,5, 4,3,4,5,4,4,3,5,4];
+// 예전 기록의 코스 이름
 const LEGACY_NAME={zdh:'젠스필드 CC · 드래곤 → 힐',zhd:'젠스필드 CC · 힐 → 드래곤',std:'기본 코스 (파72)'};
 // 내기 방식. team: 2:2 편(4명), pot: 판돈에서 홀 상금을 나눠 갖는 방식
 const MODES={
@@ -448,21 +428,12 @@ const MODES={
   skins:{name:'스킨스',en:'SKINS',min:2,max:4,team:false,pot:true},
   vegas:{name:'라스베가스',en:'VEGAS',min:4,max:4,team:true,pot:false},
 };
-function holeSub(i){const c=clubById(st.field.club),nn=c.nines[i<9?st.field.out:st.field.inn];return nn&&nn.name?`${nn.name} ${i%9+1}번`:'';}
+function holeSub(i){return i<9?`전반 ${i+1}번`:`후반 ${i-8}번`;}
 const fill=v=>Array(MAXP).fill(v);
 const P=()=>[...Array(st.n).keys()];           // 이번 라운드 참가자 인덱스
 function blankHole(par){return{par,s:fill(null),t:fill(false),ob:fill(0),bk:fill(0),hz:fill(0),tp:fill(0),long:-1,near:-1,pair:0,joker:-1,c0:0,sticks:null,left:null}}
-function blank(field=DEF_FIELD){field=fixField(field);return{n:DEF_N,names:[...DEF_NAMES],unit:1000,bonus:5000,fine:2000,potMode:'pot',fineRule:'all',fineCap:0,oecdPct:60,oecdAmt:20000,mode:'stroke',vegasFlip:true,active:false,stakes:fill(45000),prizeMode:'even',prizes:Array(18).fill(0),cur:0,field,holes:fieldPars(field).map(blankHole)}}
+function blank(pars=STD_PARS,courseName=''){return{n:DEF_N,names:[...DEF_NAMES],unit:1000,bonus:5000,fine:2000,potMode:'pot',fineRule:'all',fineCap:0,oecdPct:60,oecdAmt:20000,mode:'stroke',vegasFlip:true,active:false,stakes:fill(45000),prizeMode:'even',prizes:Array(18).fill(0),cur:0,courseName,holes:pars.map(blankHole)}}
 const touched=h=>h.t.some(Boolean);
-// 코스 적용: force면 모든 홀 파 변경, 아니면 스코어를 직접 입력한 홀은 건드리지 않음. 기본값 스코어는 새 파를 따라감
-function applyField(f,force){
-  st.field=fixField(f);
-  fieldPars(st.field).forEach((par,i)=>{
-    const h=st.holes[i];if(!force&&touched(h))return;
-    h.par=par;h.s.forEach((v,k)=>{if(!h.t[k]&&v!=null)h.s[k]=par;});clampHole(h);
-  });
-}
-
 // 저장본 검증 + 누락 필드 보정 (예전 2인용 저장본이나 깨진 값으로 화면이 죽지 않도록)
 function normalize(raw){
   const d=blank();
@@ -494,7 +465,7 @@ function normalize(raw){
     prizeMode:raw.prizeMode==='manual'?'manual':'even',
     prizes:[...Array(18).keys()].map(i=>num(Array.isArray(raw.prizes)?raw.prizes[i]:undefined,d.prizes[i])),
     cur:Number.isInteger(raw.cur)&&raw.cur>=0&&raw.cur<18?raw.cur:0,
-    field:fixField(raw.field||LEGACY_FIELD[raw.course]||DEF_FIELD),
+    courseName:typeof raw.courseName==='string'?raw.courseName.slice(0,24):(LEGACY_NAME[raw.course]||(raw.field&&raw.field.club==='zensfield'?'젠스필드 CC':'')),
     updatedAt:num(raw.updatedAt,0),
     holes
   };
@@ -503,8 +474,6 @@ let st;
 try{
   const raw=JSON.parse(localStorage.getItem(KEY));
   st=normalize(raw);
-  // 코스 선택 기능 이전 저장본: 아직 안 친 홀만 젠스필드 파로 맞춤
-  if(raw&&typeof raw==='object'&&!raw.course&&!raw.field)applyField(DEF_FIELD,false);
 }catch(e){st=blank()}
 // 저장: 이 기기(브라우저 저장소)에 바로 쓴다. 홈 화면에 추가해서 쓰면 앱 전용 저장소라 잘 지워지지 않는다.
 function save(){
@@ -518,7 +487,7 @@ try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist();}c
 async function exportRound(){
   const d=new Date(),p=n=>String(n).padStart(2,'0');
   const name=`golf-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.json`;
-  const blob=new Blob([JSON.stringify({app:'golf-bet',v:2,savedAt:d.toISOString(),state:st,history:loadHist(),courses:loadClubs()},null,1)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({app:'golf-bet',v:2,savedAt:d.toISOString(),state:st,history:loadHist()},null,1)],{type:'application/json'});
   try{
     const file=new File([blob],name,{type:'application/json'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'골프 정산 기록'});return;}
@@ -537,7 +506,6 @@ function importRound(file){
       // 라운드 기록은 겹치지 않는 것만 합친다
       let added=0;
       if(Array.isArray(data.history)){const hs=loadHist(),ids=new Set(hs.map(x=>x.id));data.history.forEach(x=>{if(x&&x.id&&!ids.has(x.id)){hs.push(x);added++;}});saveHist(hs);}
-      if(Array.isArray(data.courses)){const mine=loadClubs(),ids=new Set(mine.map(c=>c.id));data.courses.filter(validClub).forEach(c=>{if(!ids.has(c.id))mine.push(c);});saveClubs(mine);st.field=fixField(st.field);save();}
       renderSettings();render();renderHome();if(ui==='hist')renderHist();
       toast(`기록을 불러왔습니다${added?` (라운드 기록 ${added}개 추가)`:''}`,snap);
     }catch(e){toast('골프 정산 기록 파일이 아닙니다',null);}
@@ -866,7 +834,7 @@ function render(){
 
   document.getElementById('main').innerHTML=`
   <div class="bar">
-    <div class="top"><button class="barbtn" data-act="home" aria-label="시작 화면">◀ 홈</button><span class="ell">${doneCnt}/18홀 · ${esc(fieldLabel(st.field))}</span><button class="barbtn" data-act="opensheet">설정</button></div>
+    <div class="top"><button class="barbtn" data-act="home" aria-label="시작 화면">◀ 홈</button><span class="ell">${doneCnt}/18홀${st.courseName?` · ${esc(st.courseName)}`:''}</span><button class="barbtn" data-act="opensheet">설정</button></div>
     <div class="board n${n}" style="--n:${n}">${tiles}</div>
     <div class="sub">${M().name} · ${usePot()?`판돈 ${won(potTotal())} · ${st.prizeMode==='manual'?'홀 상금 직접 설정':`홀당 ${won(prizeOf(0))}`}`:`타당 ${won(st.unit)}`} · 버디/롱기/니어 ${won(st.bonus)} · ${isOECD()?'OECD 벌금':'벌금'} ${won(st.fine)}</div>
   </div>
@@ -1024,8 +992,8 @@ function renderSettings(){
           <button type="button" class="ghostbtn" data-act="evenprizes">판돈 합계로 균등하게 채우기</button>`:''}
         <div class="psum" id="psum"></div>
       </div>`:''}
-      <div class="sec-h">골프장</div>
-      <div class="fieldinfo"><b>${esc(fieldLabel(st.field))}</b><small>파 ${fieldPars(st.field).reduce((a,b)=>a+b,0)} · 바꾸려면 시작 화면의 "골프장"에서</small></div>
+      <div class="sec-h">코스</div>
+      <div class="fieldinfo"><b>${esc(st.courseName||'코스 이름 없음')}</b><small>파 ${st.holes.reduce((a,h)=>a+h.par,0)} · 홀별 파는 시작 화면의 "코스"나 홀 화면의 Par 버튼에서</small></div>
       <div class="sec-h">벌금</div>
       <div class="two">
         <label>벌금 방식
@@ -1108,7 +1076,7 @@ let ui='home',selMode=null,histSel=null,sheetKind=null;
 function show(u){
   ui=u;
   for(const [id,k] of [['scr-home','home'],['scr-modes','modes'],['scr-hist','hist'],['scr-field','field'],['scr-game','game']])document.getElementById(id).hidden=k!==u;
-  if(u==='field'){fieldDraft=null;renderField();}
+  if(u==='field')renderField();
   if(u==='home')renderHome();
   if(u==='modes')renderModes();
   if(u==='hist')renderHist();
@@ -1152,8 +1120,8 @@ function renderHome(){
   </div>
   <button class="fieldcard" data-act="field">
     <span class="ic">${ICON.stroke}</span>
-    <span class="tx"><small>골프장</small><b>${esc(clubById(st.field.club).name)}</b><em>${esc(fieldLabel(st.field).split(' · ')[1]||'')} · 파 ${fieldPars(st.field).reduce((a,b)=>a+b,0)}</em></span>
-    <span class="chg">변경</span>
+    <span class="tx"><small>코스</small><b>${esc(st.courseName||'코스 이름 없음')}</b><em>파 ${st.holes.reduce((a,h)=>a+h.par,0)} · 전반 ${st.holes.slice(0,9).reduce((a,h)=>a+h.par,0)} / 후반 ${st.holes.slice(9).reduce((a,h)=>a+h.par,0)}</em></span>
+    <span class="chg">파 입력</span>
   </button>
   <div class="menu">
     ${st.active?`<button class="mbtn primary" data-act="resume"><span class="ic">${ICON.play}</span>
@@ -1220,83 +1188,39 @@ function renderHist(){
   <button class="danger delbtn" data-act="delrec" data-id="${esc(rec.id)}">이 기록 삭제</button>`;
 }
 
-// ---------- 골프장 화면 ----------
-let fieldDraft=null,fieldQuery='';
+// ---------- 코스(홀별 파) 입력 화면 ----------
 const parSum=a=>a.reduce((x,y)=>x+y,0);
-function parRow(pars,start){
-  return `<div class="pgrid">${pars.map((p,i)=>`<div><small>${start+i+1}</small><b>${p}</b></div>`).join('')}</div>`;
-}
-function clubListHTML(){
-  const q=fieldQuery.trim().toLowerCase();
-  const list=allClubs().filter(c=>!q||(c.name+' '+(c.region||'')).toLowerCase().includes(q));
-  if(!list.length)return `<div class="empty-note">"${esc(fieldQuery)}"에 맞는 골프장이 없습니다.<br>아래 "골프장 직접 추가"로 넣을 수 있습니다.</div>`;
-  return list.map(c=>`<button class="hitem ${c.id===st.field.club?'sel':''}" data-act="pickclub" data-id="${esc(c.id)}">
-      <span class="tx"><b>${esc(c.name)}${c.custom?` <i class="mine">${c.override?'수정함':'직접 추가'}</i>`:''}</b>
-      <small>${esc([c.region,c.nines.map(n=>n.name).join(' · '),`${c.nines.length*9}홀`].filter(Boolean).join(' · '))}</small></span>
-      ${c.id===st.field.club?'<span class="amt pos">선택됨</span>':`<span class="chev" style="opacity:.4">${ICON.chev}</span>`}</button>`).join('');
-}
+function setPar(h,par){h.par=par;h.s.forEach((x,k)=>{if(!h.t[k]&&x!=null)h.s[k]=par;});clampHole(h);}
 function renderField(){
-  const el=document.getElementById('scr-field');
-  if(fieldDraft){renderFieldEditor();return;}
-  const f=st.field,c=clubById(f.club),k=c.nines.length,pars=fieldPars(f);
-  const ninePick=(w,lbl)=>`<div class="brow"><span>${lbl}</span><div class="seg" style="--k:${k}">${c.nines.map((n,i)=>`<button class="${f[w]===i?'on':''}" data-act="setnine" data-w="${w}" data-v="${i}">${esc(n.name||String(i+1))}</button>`).join('')}</div></div>`;
+  const el=document.getElementById('scr-field'),pars=st.holes.map(h=>h.par);
+  const grid=(from)=>`<div class="pedit">${pars.slice(from,from+9).map((p,i)=>`<button type="button" data-act="cpar" data-i="${from+i}" aria-label="${from+i+1}번 홀 파 ${p}"><small>${from+i+1}</small><b>${p}</b></button>`).join('')}</div>`;
   el.innerHTML=`
-  <div class="cl-h"><button class="back" data-act="home" aria-label="처음으로">${ICON.back}</button><h1>골프장</h1></div>
-  <div class="cl-sub">라운드할 골프장과 전반·후반 코스를 고르면 홀마다 파가 맞춰집니다.${st.active?' 진행 중 라운드는 스코어를 넣은 홀의 파는 그대로 둡니다.':''}</div>
-  <div class="card fsel">
-    <div class="fhead"><div><b>${esc(c.name)}</b><small>${esc([c.region,c.note].filter(Boolean).join(' · '))}</small></div><span class="ptot">파 ${parSum(pars)}</span></div>
-    ${k>1?ninePick('out','전반')+ninePick('inn','후반'):''}
-    <div class="ninelbl">${esc(c.nines[f.out].name)} (전반 ${parSum(c.nines[f.out].pars)})</div>${parRow(c.nines[f.out].pars,0)}
-    <div class="ninelbl">${esc(c.nines[f.inn].name)} (후반 ${parSum(c.nines[f.inn].pars)})</div>${parRow(c.nines[f.inn].pars,9)}
-    <div class="two" style="margin-top:12px">
-      <button class="ghostbtn" data-act="editclub" data-id="${esc(c.id)}">파 · 코스 수정</button>
-      ${c.custom?`<button class="danger" data-act="delclub" data-id="${esc(c.id)}">${c.override?'원래대로 되돌리기':'이 골프장 삭제'}</button>`:'<span></span>'}
-    </div>
-  </div>
-  <div class="hsec">골프장 목록</div>
-  <input id="clubq" class="search" type="search" placeholder="골프장 이름이나 지역으로 찾기" value="${esc(fieldQuery)}" autocomplete="off">
-  <div class="mlist" id="clublist" style="margin-top:10px">${clubListHTML()}</div>
-  <button class="startbtn" style="margin-top:16px" data-act="newclub">골프장 직접 추가</button>
-  <div class="homefoot">골프장 파 정보는 현장 스코어카드와 다를 수 있습니다. 다르면 "파 · 코스 수정"으로 고쳐 주세요.</div>`;
-  const q=document.getElementById('clubq');
-  q.addEventListener('input',()=>{fieldQuery=q.value;document.getElementById('clublist').innerHTML=clubListHTML();});
-}
-function renderFieldEditor(){
-  const d=fieldDraft,el=document.getElementById('scr-field');
-  el.innerHTML=`
-  <div class="cl-h"><button class="back" data-act="canceledit" aria-label="취소">${ICON.back}</button><h1>${d.isNew?'골프장 추가':'골프장 수정'}</h1></div>
-  <div class="cl-sub">파 숫자를 누를 때마다 3 → 4 → 5 → 6으로 바뀝니다.</div>
+  <div class="cl-h"><button class="back" data-act="home" aria-label="처음으로">${ICON.back}</button><h1>코스</h1></div>
+  <div class="cl-sub">오늘 칠 코스의 홀별 파를 넣어 주세요. 숫자를 누를 때마다 3 → 4 → 5 → 6으로 바뀝니다. 다음 라운드에도 그대로 이어집니다.</div>
   <div class="card set ed">
-    <label>골프장 이름<input id="ed-name" value="${esc(d.name)}" maxlength="24" placeholder="예: OO 컨트리클럽" autocomplete="off"></label>
-    <label>지역 (선택)<input id="ed-region" value="${esc(d.region||'')}" maxlength="20" placeholder="예: 경기 이천" autocomplete="off"></label>
-    <label>9홀 코스 개수
-      <select id="ed-count">${[1,2,3,4].map(v=>`<option value="${v}" ${d.nines.length===v?'selected':''}>${v}개 (${v*9}홀)</option>`).join('')}</select></label>
-    ${d.nines.map((n,ni)=>`<div class="grp">
-      <label>코스 ${ni+1} 이름<input id="ed-nn${ni}" value="${esc(n.name)}" maxlength="12" autocomplete="off"></label>
-      <div class="pedit">${n.pars.map((p,i)=>`<button type="button" data-act="cyclepar" data-n="${ni}" data-i="${i}"><small>${i+1}</small><b>${p}</b></button>`).join('')}</div>
-      <div class="psum">합계 파 ${parSum(n.pars)}</div>
-    </div>`).join('')}
-  </div>
-  <div class="two" style="margin-top:14px">
-    <button class="ghostbtn" data-act="canceledit">취소</button>
-    <button class="startbtn" data-act="saveclub">저장하고 선택</button>
+    <label>코스 이름 (선택)<input id="cname" value="${esc(st.courseName)}" maxlength="24" placeholder="예: OO CC 드래곤 → 힐" autocomplete="off"></label>
+    <div class="ninelbl">전반 <span id="psum0">${parSum(pars.slice(0,9))}</span></div>${grid(0)}
+    <div class="ninelbl">후반 <span id="psum1">${parSum(pars.slice(9))}</span></div>${grid(9)}
+    <div class="fieldinfo"><b>전체 파 <span id="psumT">${parSum(pars)}</span></b><small>게임 중에도 홀 화면의 Par 3 / 4 / 5 버튼으로 바꿀 수 있습니다.</small></div>
+    <div class="two">
+      <button class="ghostbtn" data-act="cswap">전반 ↔ 후반 바꾸기</button>
+      <button class="ghostbtn" data-act="cstd">표준 파72로 채우기</button>
+    </div>
   </div>`;
-  const bindIn=(id,fn)=>{const e=document.getElementById(id);if(e)e.addEventListener('input',()=>fn(e.value));};
-  bindIn('ed-name',v=>d.name=v);bindIn('ed-region',v=>d.region=v);
-  d.nines.forEach((n,ni)=>bindIn(`ed-nn${ni}`,v=>n.name=v));
-  document.getElementById('ed-count').addEventListener('change',e=>{
-    const c=+e.target.value;
-    while(d.nines.length<c)d.nines.push({name:['OUT','IN','코스3','코스4'][d.nines.length]||`코스${d.nines.length+1}`,pars:[4,4,3,4,5,4,3,4,5]});
-    d.nines.length=c;renderFieldEditor();
-  });
+  const q=document.getElementById('cname');
+  q.addEventListener('input',()=>{st.courseName=q.value.slice(0,24);save();});
 }
-// 골프장 바꾸기: 진행 중 라운드면 스코어를 넣은 홀의 파는 그대로
-function setField(f){applyField(f,!st.active);save();render();}
+function updParSums(){
+  const pars=st.holes.map(h=>h.par);
+  document.getElementById('psum0').textContent=parSum(pars.slice(0,9));
+  document.getElementById('psum1').textContent=parSum(pars.slice(9));
+  document.getElementById('psumT').textContent=parSum(pars);
+}
 // 새 라운드 준비: 이름·금액·코스 같은 설정은 이어 쓰고 스코어만 새로
 function freshRound(mode){
   const keep={names:[...st.names],unit:st.unit,bonus:st.bonus,fine:st.fine,potMode:st.potMode,fineRule:st.fineRule,fineCap:st.fineCap,oecdPct:st.oecdPct,oecdAmt:st.oecdAmt,
     stakes:[...st.stakes],prizeMode:st.prizeMode,prizes:[...st.prizes],vegasFlip:st.vegasFlip,n:st.n};
-  st=blank(st.field);Object.assign(st,keep);
+  st=blank(st.holes.map(h=>h.par),st.courseName);Object.assign(st,keep);
   st.mode=mode;const m=MODES[mode];st.n=Math.min(m.max,Math.max(m.min,st.n));st.active=false;
 }
 function makeRecord(){
@@ -1306,7 +1230,7 @@ function makeRecord(){
   const same=loadHist().filter(x=>x.date===date).length;
   const tf=transfers(pot?sideTot:total.map((v,k)=>v+potBy[k]));
   return{id:date+'-'+d.getTime(),date,label:same?`${date} (${same+1})`:date,endedAt:d.toISOString(),
-    mode:st.mode,courseName:fieldLabel(st.field),field:{...st.field},n,names:st.names.slice(0,n),holesDone:rows.filter(x=>x.counted).length,
+    mode:st.mode,courseName:st.courseName,n,names:st.names.slice(0,n),holesDone:rows.filter(x=>x.counted).length,
     total:total.map(Math.round),potBy:potBy.map(Math.round),prizeTot:prizeTot.map(Math.round),stakes:pot?st.stakes.slice(0,n):null,
     transfers:tf.map(t=>({from:t.from,to:t.to,amt:Math.round(t.amt)})),
     pars:st.holes.map(h=>h.par),scores:st.holes.map(h=>h.s.slice(0,n).map((v,k)=>h.t[k]||rows[st.holes.indexOf(h)].counted?v:null))};
@@ -1361,25 +1285,10 @@ document.addEventListener('click',e=>{
       return;}
     case 'opensheet':openSheet('mid');return;
     case 'field':show('field');return;
-    case 'pickclub':{const c=clubById(b.dataset.id);setField({club:c.id,out:0,inn:c.nines.length>1?1:0});renderField();window.scrollTo({top:0,behavior:'smooth'});return;}
-    case 'setnine':{const f={...st.field};f[b.dataset.w]=v;setField(f);renderField();return;}
-    case 'newclub':fieldDraft={isNew:true,id:'c'+Date.now(),name:'',region:'',nines:[{name:'OUT',pars:[4,4,3,4,5,4,3,4,5]},{name:'IN',pars:[4,3,4,5,4,4,3,5,4]}]};renderField();window.scrollTo(0,0);return;
-    case 'editclub':{const c=clubById(b.dataset.id);fieldDraft={isNew:false,id:c.id,name:c.name,region:c.region||'',note:c.note||'',nines:c.nines.map(n=>({name:n.name,pars:[...n.pars]}))};renderField();window.scrollTo(0,0);return;}
-    case 'cyclepar':{const n=fieldDraft.nines[+b.dataset.n],i=+b.dataset.i;n.pars[i]=n.pars[i]>=6?3:n.pars[i]+1;
-      b.querySelector('b').textContent=n.pars[i];b.closest('.grp').querySelector('.psum').textContent=`합계 파 ${parSum(n.pars)}`;return;}
-    case 'canceledit':fieldDraft=null;renderField();return;
-    case 'saveclub':{
-      const d=fieldDraft;if(!d.name.trim()){toast('골프장 이름을 넣어 주세요',null);document.getElementById('ed-name').focus();return;}
-      const club={id:d.id,name:d.name.trim(),region:(d.region||'').trim(),note:d.isNew?'직접 입력':'직접 수정',nines:d.nines.map((n,i)=>({name:n.name.trim()||`코스${i+1}`,pars:[...n.pars]}))};
-      const mine=loadClubs().filter(c=>c.id!==club.id);mine.unshift(club);saveClubs(mine);
-      fieldDraft=null;const keepN=st.field.club===club.id;
-      setField(keepN?st.field:{club:club.id,out:0,inn:club.nines.length>1?1:0});
-      renderField();toast(`${club.name} 저장했습니다`,null);return;}
-    case 'delclub':{
-      const c=clubById(b.dataset.id);
-      if(!armOrRun(b,'delclub',c.override?'한 번 더 누르면 원래대로':'한 번 더 누르면 삭제'))return;
-      saveClubs(loadClubs().filter(x=>x.id!==c.id));
-      setField(c.override?st.field:DEF_FIELD);renderField();toast(c.override?'원래 데이터로 되돌렸습니다':'골프장을 삭제했습니다',null);return;}
+    case 'cpar':{const i=+b.dataset.i,h=st.holes[i];setPar(h,h.par>=6?3:h.par+1);save();
+      b.querySelector('b').textContent=h.par;b.setAttribute('aria-label',`${i+1}번 홀 파 ${h.par}`);updParSums();return;}
+    case 'cswap':{const pars=st.holes.map(h=>h.par);st.holes.forEach((h,i)=>setPar(h,pars[(i+9)%18]));save();renderField();toast('전반과 후반을 바꿨습니다',null);return;}
+    case 'cstd':{const snap=JSON.stringify(st);st.holes.forEach((h,i)=>setPar(h,STD_PARS[i]));save();renderField();toast('표준 파72로 채웠습니다',snap);return;}
     case 'closesheet':closeSheet();return;
     case 'home':histSel=null;show('home');return;
     case 'resume':show('game');return;
