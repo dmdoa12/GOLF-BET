@@ -1,6 +1,6 @@
 // 골프 정산 서비스 워커: 한 번 열면 인터넷 없이도 실행되게 앱 파일을 저장해 둔다.
 // 앱을 고칠 때마다 VERSION을 올리면 다음 실행 때 새 파일로 바뀐다.
-const VERSION = 'golf-v11';
+const VERSION = 'golf-v12';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
