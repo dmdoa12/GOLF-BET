@@ -432,7 +432,7 @@ function holeSub(i){return i<9?`전반 ${i+1}번`:`후반 ${i-8}번`;}
 const fill=v=>Array(MAXP).fill(v);
 const P=()=>[...Array(st.n).keys()];           // 이번 라운드 참가자 인덱스
 function blankHole(par){return{par,s:fill(null),t:fill(false),ob:fill(0),bk:fill(0),hz:fill(0),tp:fill(0),long:-1,near:-1,pair:0,joker:-1,c0:0,sticks:null,left:null}}
-function blank(pars=STD_PARS,courseName=''){return{n:DEF_N,names:[...DEF_NAMES],unit:1000,bonus:5000,fine:2000,potMode:'pot',fineRule:'all',fineCap:0,oecdPct:60,oecdAmt:20000,mode:'stroke',vegasFlip:true,active:false,stakes:fill(45000),prizeMode:'even',prizes:Array(18).fill(0),cur:0,courseName,holes:pars.map(blankHole)}}
+function blank(pars=STD_PARS,courseName=''){return{n:DEF_N,names:[...DEF_NAMES],unit:1000,bonus:5000,fine:2000,potMode:'pot',fineRule:'all',fineCap:0,oecdPct:60,oecdAmt:20000,mode:'stroke',vegasFlip:true,active:false,stakes:fill(45000),prizeMode:'flat',prizeFlat:10000,prizes:Array(18).fill(0),cur:0,courseName,holes:pars.map(blankHole)}}
 const touched=h=>h.t.some(Boolean);
 // 저장본 검증 + 누락 필드 보정 (예전 2인용 저장본이나 깨진 값으로 화면이 죽지 않도록)
 function normalize(raw){
@@ -462,7 +462,7 @@ function normalize(raw){
     names:arr(raw.names,(v,k)=>(typeof v==='string'&&v.trim())||DEF_NAMES[k]),
     unit:num(raw.unit,d.unit), bonus:num(raw.bonus,d.bonus),
     fine:num(raw.fine,d.fine), fineRule:raw.fineRule==='oecd'?'oecd':'all', fineCap:num(raw.fineCap,0), oecdPct:[50,60,70,80,100].includes(+raw.oecdPct)?+raw.oecdPct:60, oecdAmt:num(raw.oecdAmt,20000), potMode:['each','prize'].includes(raw.potMode)?raw.potMode:'pot', mode:MODES[raw.mode]?raw.mode:'stroke', vegasFlip:raw.vegasFlip!==false, stakes:arr(raw.stakes,(v,k)=>num(v,num(raw.stake,d.stakes[k]))),
-    prizeMode:raw.prizeMode==='manual'?'manual':'even',
+    prizeMode:['manual','flat'].includes(raw.prizeMode)?raw.prizeMode:'even', prizeFlat:num(raw.prizeFlat,10000),
     prizes:[...Array(18).keys()].map(i=>num(Array.isArray(raw.prizes)?raw.prizes[i]:undefined,d.prizes[i])),
     cur:Number.isInteger(raw.cur)&&raw.cur>=0&&raw.cur<18?raw.cur:0,
     courseName:typeof raw.courseName==='string'?raw.courseName.slice(0,24):(LEGACY_NAME[raw.course]||(raw.field&&raw.field.club==='zensfield'?'젠스필드 CC':'')),
@@ -569,7 +569,7 @@ const tname=(h,t)=>COLOR[tcol(h,t)].nm;
 const badge=(h,t)=>`<i class="tm ${COLOR[tcol(h,t)].cl}">${tname(h,t)}</i>`;
 // 판돈·상금: 판돈은 사람마다 다르게, 홀 상금은 균등(판돈 합계÷18) 또는 홀별 직접 입력
 const potTotal=()=>P().reduce((a,k)=>a+st.stakes[k],0);
-const prizeOf=i=>st.prizeMode==='manual'?(st.prizes[i]||0):potTotal()/18;
+const prizeOf=i=>st.prizeMode==='manual'?(st.prizes[i]||0):st.prizeMode==='flat'?st.prizeFlat:potTotal()/18;
 const prizeSum=()=>[...Array(18).keys()].reduce((a,i)=>a+prizeOf(i),0);
 // 각자 홀 상금에 보태는 몫 = 판돈 비율만큼
 const shareOf=k=>{const T=potTotal();return T>0?st.stakes[k]/T:1/st.n;};
@@ -627,12 +627,15 @@ function compute(){
       r.contrib=ks.map(k=>prizeOf(i)*shareOf(k));
       r.stroke=ks.map(k=>r.prize[k]-r.contrib[k]);
     }else if(isVegas()){
-      // 라스베가스: 편 두 사람 점수를 작은 수-큰 수로 붙여 두 자리 숫자(4,5 -> 45, 4,10 -> 410).
+      // 라스베가스: 편 두 사람 점수를 작은 수-큰 수로 붙여 두 자리 숫자(4,5 -> 45).
       // 상대 편에 버디가 나오면 내 숫자를 뒤집는다(큰 수-작은 수). 숫자 차이 × 타당 × 배수를 진 편 각자가 이긴 편 각자에게.
       const sc=[[],[]];ks.forEach(k=>sc[teamOf(h,k)].push(h.s[k]));
       const bt=[0,1].map(t=>ks.some(k=>teamOf(h,k)===t&&h.s[k]<=h.par-1));
-      const num=(a,flip)=>{const [x,y]=[...a].sort((p,q)=>p-q);return flip?y*10+x:(y>=10?x*100+y:x*10+y);};
-      const fl=[st.vegasFlip&&bt[1],st.vegasFlip&&bt[0]];
+      // 일반 룰: 한 사람이 10타 이상이면 큰 수를 앞에(5와 11 -> 115). 뒤집기도 큰 수를 앞에.
+      const num=(a,flip)=>{const [x,y]=[...a].sort((p,q)=>p-q);return flip||y>=10?y*10+x:x*10+y;};
+      // 양쪽 편 모두 버디가 나오면 뒤집기는 서로 상쇄
+      const both=bt[0]&&bt[1];
+      const fl=[st.vegasFlip&&bt[1]&&!both,st.vegasFlip&&bt[0]&&!both];
       const V=[num(sc[0],fl[0]),num(sc[1],fl[1])], D=V[1]-V[0];
       r.vnum=V;r.vflip=fl;r.win=D>0?0:D<0?1:-1;
       r.stroke=ks.map(k=>st.unit*mult*(teamOf(h,k)===0?D:-D));
@@ -823,7 +826,7 @@ function render(){
   // 공금 벌금은 사람끼리 주고받는 돈이 아니므로 송금 계산에서 빼고 따로 보여준다
   const tf=transfers(usePot()?sideTot:total.map((v,k)=>v+potBy[k]));
   const pd=prizeSum()-potTotal();
-  const prizeRows=usePot()?`<div class="row sec"><span>판돈 상금 <small>판돈 합계 ${won(potTotal())} · 홀 상금 ${st.prizeMode==='manual'?'직접 설정':`홀당 ${won(prizeOf(0))}`}${Math.abs(pd)>=1?` · 상금 합계가 판돈보다 ${won(pd)} ${pd>0?'많음':'적음'}`:''}${carry?` · 이월 중 ${won(carry)}`:''}</small></span></div>
+  const prizeRows=usePot()?`<div class="row sec"><span>판돈 상금 <small>판돈 합계 ${won(potTotal())} · 홀 상금 ${st.prizeMode==='manual'?'홀마다 직접 설정':`홀당 ${won(prizeOf(0))}`}${Math.abs(pd)>=1?` · 상금 합계가 판돈보다 ${won(pd)} ${pd>0?'많음':'적음'}`:''}${carry?` · 이월 중 ${won(carry)}`:''}</small></span></div>
     ${ks.map(k=>`<div class="row"><span class="ell">${esc(N[k])} <small class="inl">판돈 ${won(st.stakes[k])}</small></span><b class="num">상금 ${won(prizeTot[k])}</b></div>`).join('')}
     <div class="row sec"><span>보너스${st.potMode==='each'?'·벌금':''} 정산 <small>사람끼리 주고받을 돈</small></span></div>`:'';
   const settle=prizeRows+(tf.length
@@ -960,6 +963,7 @@ function updPsum(){
   const d=prizeSum()-potTotal();
   el.textContent=`판돈 합계 ${won(potTotal())} · 상금 합계 ${won(prizeSum())}`+(Math.abs(d)>=1?` (${won(d)} ${d>0?'초과':'남음'})`:'');
   el.className='psum'+(Math.abs(d)>=1?' bad':'');
+  const fb=document.getElementById('fitStakes');if(fb)fb.hidden=Math.abs(d)<1;
 }
 // 설정창(시트). 게임 시작 전에도, 라운드 중간에도 연다.
 function renderSettings(){
@@ -986,11 +990,13 @@ function renderSettings(){
         <div class="grph">판돈 (사람마다)</div>
         <div class="two">${ks.map(k=>`<label>${esc(N[k])}<input id="stake${k}" type="number" inputmode="numeric" min="0" step="1000" value="${st.stakes[k]}"></label>`).join('')}</div>
         <label>홀당 상금
-          <select id="prizeMode"><option value="even" ${st.prizeMode!=='manual'?'selected':''}>균등 (판돈 합계 ÷ 18)</option><option value="manual" ${st.prizeMode==='manual'?'selected':''}>홀마다 직접 입력</option></select>
+          <select id="prizeMode"><option value="flat" ${st.prizeMode==='flat'?'selected':''}>모든 홀 같은 금액</option><option value="even" ${st.prizeMode==='even'?'selected':''}>판돈 합계 ÷ 18 (자동)</option><option value="manual" ${st.prizeMode==='manual'?'selected':''}>홀마다 직접 입력</option></select>
         </label>
+        ${st.prizeMode==='flat'?`<label>홀당 상금 금액<input id="prizeFlat" type="number" inputmode="numeric" min="0" step="1000" value="${st.prizeFlat}"></label>`:''}
         ${st.prizeMode==='manual'?`<div class="prizes">${[...Array(18).keys()].map(i=>`<label><span>${i+1}번</span><input id="prize${i}" type="number" inputmode="numeric" min="0" step="1000" value="${st.prizes[i]}"></label>`).join('')}</div>
           <button type="button" class="ghostbtn" data-act="evenprizes">판돈 합계로 균등하게 채우기</button>`:''}
         <div class="psum" id="psum"></div>
+        <button type="button" class="ghostbtn" id="fitStakes" data-act="fitstakes" hidden>판돈을 상금 합계에 맞추기</button>
       </div>`:''}
       <div class="sec-h">코스</div>
       <div class="fieldinfo"><b>${esc(st.courseName||'코스 이름 없음')}</b><small>파 ${st.holes.reduce((a,h)=>a+h.par,0)} · 홀별 파는 시작 화면의 "코스"나 홀 화면의 Par 버튼에서</small></div>
@@ -1040,7 +1046,8 @@ function renderSettings(){
   ks.forEach(k=>bind(`n${k}name`,'input',v=>st.names[k]=v.trim()||DEF_NAMES[k],el=>{el.value=st.names[k];}));
   if(pot){
     ks.forEach(k=>bind(`stake${k}`,'input',v=>{st.stakes[k]=Math.max(0,Math.round(+v)||0);updPsum();},el=>{el.value=st.stakes[k];}));
-    bind('prizeMode','change',v=>{st.prizeMode=v==='manual'?'manual':'even';if(st.prizeMode==='manual'&&!st.prizes.some(Boolean))fillEvenPrizes();},()=>renderSettings());
+    bind('prizeFlat','input',v=>{st.prizeFlat=Math.max(0,Math.round(+v)||0);updPsum();},el=>{el.value=st.prizeFlat;});
+    bind('prizeMode','change',v=>{st.prizeMode=['manual','flat'].includes(v)?v:'even';if(st.prizeMode==='manual'&&!st.prizes.some(Boolean))fillEvenPrizes();},()=>renderSettings());
     if(st.prizeMode==='manual')for(let i=0;i<18;i++)bind(`prize${i}`,'input',v=>{st.prizes[i]=Math.max(0,Math.round(+v)||0);updPsum();},el=>{el.value=st.prizes[i];});
     updPsum();
   }else bind('unit','input',v=>st.unit=Math.max(0,Math.round(+v)||0),el=>{el.value=st.unit;});
@@ -1062,8 +1069,8 @@ const MODE_RULES={
     동타면 상금이 다음 홀로 이월되고, 18번 홀까지 동타면 판돈 비율대로 나눕니다.`,
   skins:()=>`스킨스: 각자 판돈을 내고, 홀마다 정해진 상금(스킨)을 혼자 가장 적게 친 사람이 전부 가져갑니다.<br>
     공동 1등이면 아무도 못 가져가고 다음 홀로 이월돼 상금이 커집니다. 18번 홀까지 이월되면 판돈 비율대로 나눕니다.`,
-  vegas:()=>`라스베가스: 홀이 끝나고 스틱 4개(빨강2·초록2)로 2:2 편을 뽑습니다. 편 두 사람 점수를 작은 수-큰 수로 붙여 숫자를 만듭니다(4와 5면 45, 4와 10이면 410).<br>
-    ${st.vegasFlip?'상대 편에 버디가 나오면 내 숫자를 뒤집습니다(45 → 54). ':''}숫자가 작은 편이 이기고, 숫자 차이 × 타당 × 배수를 진 편 각자가 이긴 편 각자에게 냅니다.<br>
+  vegas:()=>`라스베가스: 홀이 끝나고 스틱 4개(빨강2·초록2)로 2:2 편을 뽑습니다. 편 두 사람 점수를 작은 수-큰 수로 붙여 숫자를 만듭니다(4와 5면 45). 한 사람이 10타 이상이면 큰 수를 앞에 붙입니다(5와 11이면 115).<br>
+    ${st.vegasFlip?'상대 편에 버디가 나오면 내 숫자를 뒤집습니다(45 → 54). 양쪽 편 모두 버디가 나오면 뒤집기는 없던 것이 됩니다. ':''}숫자가 작은 편이 이기고, 숫자 차이 × 타당 × 배수를 진 편 각자가 이긴 편 각자에게 냅니다.<br>
     더블파나 버디가 나오면 다음 홀 ×2 배판입니다.`,
 };
 
@@ -1106,7 +1113,7 @@ const MODE_DESC={
   stroke:['타수 차이만큼 서로 주고받는 기본 내기','모든 사람끼리 1:1로 계산합니다 (타수 차 × 타당).','더블파나 버디가 나오면 다음 홀은 ×2 배판입니다.','버디·롱기·니어 보너스, OB·벙커·해저드 벌금이 붙습니다.'],
   draw:['홀이 끝나면 스틱으로 2:2 편을 뽑는 내기','각자 판돈을 내고, 홀마다 정한 상금을 타수 합이 적은 편이 반씩 가져갑니다.','조커를 뽑은 사람은 그 홀을 무조건 보기로 계산합니다.','동타면 상금이 다음 홀로 이월됩니다.'],
   skins:['홀 상금을 혼자 1등 한 사람이 독식','각자 판돈을 내고, 홀마다 걸린 상금(스킨)을 단독 1등이 모두 가져갑니다.','공동 1등이면 다음 홀로 이월돼 상금이 커집니다.','판돈은 사람마다 다르게 정할 수 있습니다.'],
-  vegas:['2:2 편 점수를 붙여 숫자로 겨루는 내기','홀이 끝나면 스틱으로 편을 뽑고, 두 사람 점수를 붙여 숫자를 만듭니다 (4·5 → 45).','상대 편에 버디가 나오면 내 숫자를 뒤집습니다 (45 → 54).','숫자 차이 × 타당을 진 편이 이긴 편에게 냅니다.'],
+  vegas:['2:2 편 점수를 붙여 숫자로 겨루는 내기','홀이 끝나면 스틱으로 편을 뽑고, 두 사람 점수를 붙여 숫자를 만듭니다 (4·5 → 45).','상대 편에 버디가 나오면 내 숫자를 뒤집습니다 (45 → 54). 10타 이상은 큰 수가 앞 (5·11 → 115).','숫자 차이 × 타당을 진 편이 이긴 편에게 냅니다.'],
 };
 function renderHome(){
   const hs=loadHist();
@@ -1219,7 +1226,7 @@ function updParSums(){
 // 새 라운드 준비: 이름·금액·코스 같은 설정은 이어 쓰고 스코어만 새로
 function freshRound(mode){
   const keep={names:[...st.names],unit:st.unit,bonus:st.bonus,fine:st.fine,potMode:st.potMode,fineRule:st.fineRule,fineCap:st.fineCap,oecdPct:st.oecdPct,oecdAmt:st.oecdAmt,
-    stakes:[...st.stakes],prizeMode:st.prizeMode,prizes:[...st.prizes],vegasFlip:st.vegasFlip,n:st.n};
+    stakes:[...st.stakes],prizeMode:st.prizeMode,prizeFlat:st.prizeFlat,prizes:[...st.prizes],vegasFlip:st.vegasFlip,n:st.n};
   st=blank(st.holes.map(h=>h.par),st.courseName);Object.assign(st,keep);
   st.mode=mode;const m=MODES[mode];st.n=Math.min(m.max,Math.max(m.min,st.n));st.active=false;
 }
@@ -1276,6 +1283,10 @@ document.addEventListener('click',e=>{
     case 'showdraw':showDrawAnim(h,false);return;
     case 'export':exportRound();return;
     case 'import':document.getElementById('importFile').click();return;
+    case 'fitstakes':{
+      // 상금 합계를 인원수로 나눠 각자 판돈으로 (1,000원 단위 올림)
+      const each=Math.ceil(prizeSum()/st.n/1000)*1000;P().forEach(k=>st.stakes[k]=each);save();renderSettings();render();
+      toast(`판돈을 1인 ${won(each)}으로 맞췄습니다`,null);return;}
     case 'evenprizes':fillEvenPrizes();save();renderSettings();render();return;
     case 'rename':{
       // 설정창을 열고 해당 이름 칸에 바로 커서
