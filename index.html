@@ -14,8 +14,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#eef1ec; --paper:#ffffff; --ink:#15211a; --mut:#66736b; --line:#d8ddd6;
@@ -197,7 +196,7 @@ summary{padding:14px 16px;font-weight:700;cursor:pointer}
 .danger{height:44px;border-radius:8px;border:1px solid var(--red);color:var(--red);font-weight:700}
 .danger.arm{background:var(--red);color:#fff}
 
-.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:14px;background:var(--ink);color:var(--paper);padding:10px 12px 10px 16px;border-radius:12px;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.25);width:max-content;max-width:calc(100% - 32px)}
+.toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:14px;background:var(--ink);color:var(--paper);padding:10px 12px 10px 16px;border-radius:12px;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.25);width:max-content;max-width:calc(100% - 32px)}
 .toast[hidden]{display:none}
 .toast button{color:var(--flag);font-weight:700;padding:4px 6px;white-space:nowrap;flex:none}
 .toast span{min-width:0}
@@ -268,77 +267,105 @@ body.noscroll{overflow:hidden}
 .modeline b{font-size:18px;color:var(--ink)}
 .modeline small{font-size:11px;letter-spacing:1px}
 
-/* ---- 도트 화면 공통 (시작 · 모드 선택 · 기록) ---- */
-body.pxmode{background:#0d1a2b}
-.px{font-family:"Galmuri11","Galmuri9","IBM Plex Sans KR",sans-serif;color:#f3f0e6;min-height:100vh;min-height:100dvh;max-width:560px;margin:0 auto;padding:0 16px 32px;position:relative;overflow:hidden;
-  background:linear-gradient(#0d1a2b,#13304a 70%,#1b4466)}
-.px[hidden]{display:none}
-.stars{position:absolute;inset:0;pointer-events:none}
-.stars i{position:absolute;width:4px;height:4px;background:#fff;opacity:.85;animation:twk 2.4s steps(2) infinite}
-@keyframes twk{50%{opacity:.15}}
-.hm{position:relative;display:flex;flex-direction:column;align-items:center;min-height:100vh;min-height:100dvh;padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
-.logo{font-family:"Press Start 2P",monospace;font-weight:400;margin:0;text-align:center;line-height:1.2;letter-spacing:2px}
-.logo span{display:block;font-size:clamp(46px,15vw,66px);color:#ffd23f;text-shadow:4px 4px 0 #e5483b,8px 8px 0 #4a1410;animation:bob 1.6s steps(2) infinite}
-.logo .l2{color:#7ee08a;text-shadow:4px 4px 0 #1f6b35,8px 8px 0 #0b2a15;animation-delay:.8s}
-@keyframes bob{50%{transform:translateY(-5px)}}
-.tagline{margin-top:20px;font-size:15px;color:#cfe3ff;letter-spacing:2px}
-.scene{position:relative;width:100%;height:150px;margin:22px 0 4px}
-.scene .flag{position:absolute;left:56%;bottom:44px}
-.scene .ball{position:absolute;left:22%;bottom:44px;animation:hop 1.4s steps(7) infinite}
-@keyframes hop{0%,100%{transform:translate(0,0)}50%{transform:translate(18px,-30px)}}
-.ground{position:absolute;left:-16px;right:-16px;bottom:0;height:48px;background:#3c8d2f;box-shadow:inset 0 8px 0 #57b347,inset 0 -14px 0 #2e6f24}
-.hole{position:absolute;z-index:1;left:calc(56% - 12px);bottom:40px;width:28px;height:8px;background:#0b1f12}
-.menu{width:100%;display:grid;gap:14px;margin-top:22px}
-.pxbtn{font-family:inherit;width:100%;min-height:56px;padding:10px 14px;font-size:18px;color:#fff;background:#24456b;border:4px solid #0a1220;
-  box-shadow:inset -4px -4px 0 #16314f,inset 4px 4px 0 #3d6a9a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:0}
-.pxbtn small{font-size:12px;opacity:.85}
-.pxbtn.y{background:#ffd23f;color:#2b1a00;box-shadow:inset -4px -4px 0 #c99a10,inset 4px 4px 0 #fff0a6}
-.pxbtn:active{transform:translateY(3px)}
-.pxbtn.arm,.pxbtn.delbtn.arm{background:#e5483b;color:#fff;box-shadow:inset -4px -4px 0 #9c2a20,inset 4px 4px 0 #ff8a7d;font-size:15px}
-.blink{margin-top:26px;font-family:"Press Start 2P",monospace;font-size:12px;color:#ffd23f;animation:blk 1s steps(1) infinite}
-@keyframes blk{50%{opacity:0}}
-.foot{margin-top:auto;padding:28px 0 calc(8px + env(safe-area-inset-bottom,0px));font-size:12px;color:#8aa3bf}
-.ms-h{display:flex;align-items:center;gap:12px;padding-top:calc(env(safe-area-inset-top,0px) + 20px)}
-.pxback{font-family:inherit;flex:none;width:44px;height:44px;background:#24456b;color:#fff;border:4px solid #0a1220;box-shadow:inset -3px -3px 0 #16314f,inset 3px 3px 0 #3d6a9a;font-size:15px}
-.ms-t{font-family:"Press Start 2P",monospace;font-size:clamp(13px,4.6vw,18px);color:#ffd23f;text-shadow:3px 3px 0 #4a1410;line-height:1.4}
-.ms-sub{margin:16px 0 14px;font-size:13px;color:#a9c1dc;line-height:1.6}
-.mlist{display:grid;gap:12px}
-.mcard{font-family:inherit;width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;background:#13253a;color:#fff;border:4px solid #0a1220;border-radius:0;
-  box-shadow:inset -4px -4px 0 #0c1a2a,inset 4px 4px 0 #24456b;text-align:left;transition:opacity .2s,transform .15s}
-.mlist.has .mcard:not(.on){opacity:.45}
-.mcard.on{background:#1d3a5c;transform:translateX(6px);animation:glow 1s steps(2) infinite}
-@keyframes glow{0%,100%{box-shadow:inset -4px -4px 0 #0c1a2a,inset 4px 4px 0 #3d6a9a,0 0 0 4px #ffd23f}50%{box-shadow:inset -4px -4px 0 #0c1a2a,inset 4px 4px 0 #3d6a9a,0 0 0 4px #ff9f1c}}
-.mcard .cur{flex:none;width:12px;color:#ffd23f;visibility:hidden;animation:blk .8s steps(1) infinite}
-.mcard.on .cur{visibility:visible}
-.mcard .mico{flex:none}
-.mcard .mn{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
-.mcard b{font-size:18px;font-weight:700}
-.mcard small{font-family:"Press Start 2P",monospace;font-size:9px;letter-spacing:1px;color:#a9c1dc}
-.mcard .hsum{font-size:12px;color:#cfe3ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mdesc{display:grid;gap:10px;margin:-2px 0 6px 6px;padding:14px;background:#0a1626;border:4px solid #ffd23f;border-top:0}
-.mdesc p{margin:0;font-size:14px;line-height:1.55;opacity:0;transform:translateX(-10px);animation:lineIn .3s steps(3) forwards;animation-delay:calc(var(--d) * 110ms)}
-.mdesc p::before{content:"▸ ";color:#ffd23f}
-.mdesc .pxbtn{margin-top:4px;opacity:0;animation:lineIn .3s steps(3) forwards;animation-delay:.45s}
-@keyframes lineIn{to{opacity:1;transform:none}}
-.hcard{margin-top:14px;padding:12px 14px;background:#13253a;border:4px solid #0a1220;box-shadow:inset 4px 4px 0 #24456b}
-.hh{font-size:13px;color:#ffd23f;margin-bottom:6px}
-.hrow{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:7px 0;border-top:1px dashed #2c4866;font-size:15px}
-.hrow:first-of-type{border-top:0}
-.hrow small{color:#a9c1dc;font-size:12px}
-.hrow .up{color:#7ee08a}.hrow .dn{color:#ff8a7d}
-.htbl{overflow-x:auto;padding:6px}
-.htbl table{font-size:12px;color:#f3f0e6}
-.htbl th{background:none;color:#a9c1dc}
-.htbl td,.htbl th{border-bottom:1px solid #2c4866;padding:5px 4px}
-.htbl tr.sum td{background:#1d3a5c;color:#ffd23f}
-.delbtn{margin-top:18px;font-size:15px;min-height:48px}
-@media (prefers-reduced-motion: reduce){.logo span,.scene .ball,.stars i,.blink,.mcard.on,.mdesc p,.mdesc .pxbtn{animation:none;opacity:1;transform:none}}
+/* ---- 버튼 모양 통일 (게임 화면 전체) ---- */
+.nav button,.danger,.ghostbtn,.startbtn,.drawbig,.btn{border-radius:12px;font-weight:700;transition:transform .12s ease,background-color .2s,opacity .2s}
+.nav button:active:not(:disabled),.danger:active,.ghostbtn:active,.startbtn:active,.drawbig:active,.btn:active{transform:scale(.97)}
+.ghostbtn{height:44px;background:var(--paper);border:1px solid var(--line);font-size:14px;color:var(--green)}
+.danger{height:46px;background:var(--paper);font-size:15px}
+.drawbig{box-shadow:none}
+.redraw{border-radius:10px}
+.nav{position:sticky;bottom:0;z-index:4;margin:12px -14px 0;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));
+  background:var(--bg);box-shadow:0 -1px 0 var(--line)}
+.nav button{height:52px;font-size:16px}
+.nav button.endbtn{background:var(--red);border-color:var(--red);color:#fff}
+.card{animation:fadeUp .25s ease-out}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}}
+.grp{background:var(--bg)}
+.set .sec-h{font-size:13px;font-weight:700;color:var(--ink);margin:6px 0 -4px}
+details.rulebox{border:1px solid var(--line);border-radius:10px;background:var(--bg);margin:0}
+details.rulebox summary{padding:10px 12px;font-size:14px}
+details.rulebox .rules{padding:0 12px 12px}
+
+/* ---- 시작 · 모드 선택 · 기록 화면 (게임 화면과 같은 색·글꼴) ---- */
+.cl{max-width:560px;margin:0 auto;padding:0 16px 32px;min-height:100vh;min-height:100dvh}
+.cl[hidden]{display:none}
+.cl-h{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 16px) 0 4px}
+.cl-h h1{margin:0;font-size:22px;letter-spacing:-.02em}
+.back{flex:none;width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--paper);display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.back svg{width:18px;height:18px}
+.cl-sub{margin:6px 0 16px;font-size:14px;color:var(--mut);line-height:1.6}
+.hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:calc(env(safe-area-inset-top,0px) + 64px) 0 8px}
+.mark{width:96px;height:96px;border-radius:28px;background:var(--green);display:flex;align-items:center;justify-content:center;box-shadow:0 12px 30px rgba(27,74,51,.28);animation:pop .5s cubic-bezier(.2,1.4,.4,1) both}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mark{background:#1d3327;box-shadow:none}}
+:root[data-theme="dark"] .mark{background:#1d3327;box-shadow:none}
+.mark svg{width:60px;height:60px;overflow:visible}
+.mark .flagcloth{transform-origin:31px 14px;animation:wave 2.4s ease-in-out infinite}
+@keyframes wave{50%{transform:skewY(-6deg) scaleX(.92)}}
+.mark .ballg{animation:roll 3.2s ease-in-out infinite}
+@keyframes roll{0%,100%{transform:translateX(0)}50%{transform:translateX(6px)}}
+@keyframes pop{from{opacity:0;transform:scale(.7)}}
+.hero .title{margin:22px 0 0;font-size:34px;font-weight:700;letter-spacing:.08em;animation:fadeUp .5s .1s ease-out both}
+.hero .title span{color:var(--green)}
+.hero .tagline{margin-top:6px;font-size:15px;color:var(--mut);animation:fadeUp .5s .18s ease-out both}
+.menu{display:grid;gap:12px;margin-top:36px}
+.menu > *{animation:fadeUp .45s ease-out both}
+.menu > *:nth-child(1){animation-delay:.25s}.menu > *:nth-child(2){animation-delay:.32s}.menu > *:nth-child(3){animation-delay:.39s}
+.mbtn{width:100%;display:flex;align-items:center;gap:14px;padding:16px;border-radius:16px;background:var(--paper);border:1px solid var(--line);text-align:left;transition:transform .12s ease,border-color .2s}
+.mbtn:active{transform:scale(.98)}
+.mbtn.primary{background:var(--green);border-color:var(--green);color:#fff}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mbtn.primary{color:#0f1512}}
+:root[data-theme="dark"] .mbtn.primary{color:#0f1512}
+.mbtn .ic{flex:none;width:40px;height:40px;border-radius:12px;background:var(--green2);color:var(--green);display:flex;align-items:center;justify-content:center}
+.mbtn.primary .ic{background:rgba(255,255,255,.18);color:inherit}
+.mbtn .ic svg{width:22px;height:22px}
+.mbtn .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.mbtn b{font-size:17px}
+.mbtn small{font-size:13px;opacity:.75}
+.mbtn .chev{flex:none;opacity:.5}
+.mbtn.arm{background:var(--red);border-color:var(--red);color:#fff}
+.mbtn.arm .ic{background:rgba(255,255,255,.18);color:#fff}
+.homefoot{margin-top:28px;text-align:center;font-size:12px;color:var(--mut)}
+.mlist{display:grid;gap:10px}
+.mcard{width:100%;display:block;text-align:left;padding:0;border-radius:16px;background:var(--paper);border:1.5px solid var(--line);overflow:hidden;transition:border-color .2s,opacity .25s,box-shadow .25s;animation:fadeUp .35s ease-out both}
+.mlist .mcard:nth-child(2){animation-delay:.05s}.mlist .mcard:nth-child(3){animation-delay:.1s}.mlist .mcard:nth-child(4){animation-delay:.15s}
+.mlist.has .mcard:not(.on){opacity:.55}
+.mcard.on{border-color:var(--green);box-shadow:0 6px 20px rgba(27,74,51,.14)}
+.mcard .row1{display:flex;align-items:center;gap:14px;padding:14px 16px}
+.mcard .ic{flex:none;width:44px;height:44px;border-radius:12px;background:var(--green2);color:var(--green);display:flex;align-items:center;justify-content:center;transition:background-color .2s,color .2s}
+.mcard.on .ic{background:var(--green);color:#fff}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mcard.on .ic{color:#0f1512}}
+:root[data-theme="dark"] .mcard.on .ic{color:#0f1512}
+.mcard .ic svg{width:24px;height:24px}
+.mcard .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.mcard b{font-size:17px}
+.mcard small{font-size:13px;color:var(--mut)}
+.mcard .ppl{flex:none;font-size:12px;font-weight:700;color:var(--mut);background:var(--bg);border-radius:10px;padding:3px 8px}
+.mdesc{display:grid;grid-template-rows:0fr;visibility:hidden;transition:grid-template-rows .3s ease,visibility 0s .3s}
+.mcard.on .mdesc{grid-template-rows:1fr;visibility:visible;transition:grid-template-rows .3s ease}
+.mdesc > div{overflow:hidden}
+.mdesc ul{margin:0;padding:0 16px 4px 74px;list-style:none;display:grid;gap:6px}
+.mdesc li{font-size:14px;line-height:1.5;color:var(--ink);opacity:0;transform:translateY(4px);transition:opacity .25s,transform .25s}
+.mcard.on .mdesc li{opacity:1;transform:none}
+.mcard.on .mdesc li:nth-child(2){transition-delay:.06s}.mcard.on .mdesc li:nth-child(3){transition-delay:.12s}.mcard.on .mdesc li:nth-child(4){transition-delay:.18s}
+.mdesc li::before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--green);margin:0 8px 2px -13px}
+.mdesc .go{display:block;margin:12px 16px 16px;width:calc(100% - 32px);height:48px;border-radius:12px;background:var(--green);color:#fff;font-size:16px;font-weight:700}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mdesc .go{color:#0f1512}}
+:root[data-theme="dark"] .mdesc .go{color:#0f1512}
+.hitem{width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;background:var(--paper);border:1px solid var(--line);text-align:left;animation:fadeUp .3s ease-out both}
+.hitem .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.hitem b{font-size:16px}
+.hitem small{font-size:13px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hitem .amt{flex:none;font-size:14px;font-weight:700}
+.empty-note{padding:28px 16px;text-align:center;color:var(--mut);font-size:14px;line-height:1.6;background:var(--paper);border:1px dashed var(--line);border-radius:14px}
+.hsec{margin:18px 0 8px;font-size:15px;font-weight:700}
+.delbtn{margin-top:20px;width:100%}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<div id="scr-home" class="scr px" hidden></div>
-<div id="scr-modes" class="scr px" hidden></div>
-<div id="scr-hist" class="scr px" hidden></div>
+<div id="scr-home" class="cl" hidden></div>
+<div id="scr-modes" class="cl" hidden></div>
+<div id="scr-hist" class="cl" hidden></div>
 <div id="scr-game" class="wrap" hidden>
   <div id="main"></div>
   <div class="endrow">
@@ -800,7 +827,7 @@ function render(){
   </div>
   <div class="nav">
     <button data-act="go" data-i="${c-1}" ${c===0?'disabled':''}>이전 홀</button>
-    <button class="primary" data-act="go" data-i="${c+1}" ${c===17?'disabled':''}>다음 홀</button>
+    ${c===17?'<button class="endbtn" data-act="endround">라운드 종료</button>':`<button class="primary" data-act="go" data-i="${c+1}">다음 홀</button>`}
   </div>
   <button class="clear" data-act="clearhole">이 홀 기본값(파)으로 되돌리기</button>
 
@@ -905,13 +932,15 @@ function renderSettings(){
   const N=st.names,ks=P(),m=M(),pot=usePot();
   const ns=[2,3,4].filter(v=>v>=m.min&&v<=m.max);
   document.getElementById('settings').innerHTML=`
-      <div class="modeline"><span>내기 방식</span><b>${m.name}</b><small>${m.en}</small></div>
+      <div class="modeline"><span>내기 방식</span><b>${m.name}</b></div>
+      <div class="sec-h">플레이어</div>
       ${ns.length>1?`<label>인원
         <select id="n">${ns.map(v=>`<option value="${v}" ${st.n===v?'selected':''}>${v}명</option>`).join('')}</select>
       </label>`:`<div class="psum">${m.name}는 4명이 합니다.</div>`}
       <div class="two">
         ${ks.map(k=>`<label>플레이어 ${k+1}<input id="n${k}name" value="${esc(N[k])}" maxlength="6" autocomplete="off"></label>`).join('')}
       </div>
+      <div class="sec-h">금액</div>
       <div class="two">
         ${pot?'':`<label>타당 금액<input id="unit" type="number" inputmode="numeric" min="0" step="1000" value="${st.unit}"></label>`}
         <label>보너스 금액<input id="bonus" type="number" inputmode="numeric" min="0" step="1000" value="${st.bonus}"></label>
@@ -929,9 +958,11 @@ function renderSettings(){
           <button type="button" class="ghostbtn" data-act="evenprizes">판돈 합계로 균등하게 채우기</button>`:''}
         <div class="psum" id="psum"></div>
       </div>`:''}
+      <div class="sec-h">코스</div>
       <label>코스
         <select id="course">${Object.entries(COURSES).map(([id,c])=>`<option value="${id}" ${st.course===id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
       </label>
+      <div class="sec-h">벌금</div>
       <div class="two">
         <label>벌금 방식
           <select id="fineRule"><option value="all" ${!isOECD()?'selected':''}>모두 냄</option><option value="oecd" ${isOECD()?'selected':''}>OECD 룰</option></select>
@@ -944,6 +975,7 @@ function renderSettings(){
           <select id="potMode"><option value="pot" ${st.potMode==='pot'?'selected':''}>공금 적립 (캐디피 등)</option><option value="each" ${st.potMode==='each'?'selected':''}>나머지에게 각각</option></select>
         </label>
       </div>
+      <details class="rulebox"><summary>규칙 자세히 보기</summary>
       <p class="rules">
         ${MODE_RULES[st.mode]()}<br>
         홀마다 더블파(파×2)가 최대 타수입니다.<br>
@@ -951,7 +983,7 @@ function renderSettings(){
           ?`OECD 룰: 본전 이상 딴 사람(${pot?'받은 상금이 낸 판돈 이상':'지금까지 딴 돈이 플러스'})만 OECD 회원이 되어 OB·벙커·해저드·3퍼트·트리플보기 이상 1번마다 벌금을 냅니다. 회원이 아니면 벌금이 없습니다. 회원 여부는 홀마다 그 홀 시작 시점 기준으로 다시 정해집니다.`
           :`OB·벙커·해저드는 1번마다 벌금을 냅니다(배수 없음).`} 같은 홀에서 여러 번이면 버튼을 다시 눌러 횟수를 올립니다.${st.fineCap>0?` 한 홀 벌금은 최대 ${won(st.fineCap)}입니다.`:''}<br>
         버디(이글 포함), 롱기, 니어는 배수와 상관없이 나머지 사람이 각각 보너스 금액을 냅니다.
-      </p>
+      </p></details>
       <div class="grp">
         <div class="grph">기록 백업</div>
         <div class="two">
@@ -1007,73 +1039,77 @@ let ui='home',selMode=null,histSel=null,sheetKind=null;
 function show(u){
   ui=u;
   for(const [id,k] of [['scr-home','home'],['scr-modes','modes'],['scr-hist','hist'],['scr-game','game']])document.getElementById(id).hidden=k!==u;
-  document.body.classList.toggle('pxmode',u!=='game');
   if(u==='home')renderHome();
   if(u==='modes')renderModes();
   if(u==='hist')renderHist();
   if(u==='game')render();
   window.scrollTo(0,0);
 }
-// 도트 그림: 문자 한 칸 = 색 한 칸
-function pxArt(rows,pal,size,cls){
-  const w=rows[0].length,h=rows.length;let r='';
-  rows.forEach((row,y)=>[...row].forEach((ch,x)=>{if(pal[ch])r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${pal[ch]}"/>`;}));
-  return `<svg class="${cls||''}" viewBox="0 0 ${w} ${h}" width="${w*size}" height="${h*size}" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
-}
-const PAL={W:'#f4f1e8',R:'#e5483b',D:'#9c2a20',G:'#c9cfd6',Y:'#ffd23f',O:'#c99a10',B:'#b88b57',N:'#2e9e5b',K:'#111',L:'#7ee08a',U:'#3d6a9a'};
-const SPR={
-  flag:["W...........","WRRRR.......","WRRRRRRR....","WRRRRRRRRRR.","WRRRRRRDD...","WRRRRDD.....","WDD.........","W...........","W...........","W...........","W...........","W...........","W...........","W..........."],
-  ball:[".WWWWW.","WWWWWWW","WWGWWWW","WWWWGWW","WGWWWWW","WWWWWWW",".WWWWW."],
-  stroke:["......WW",".....WW.","....WW..","...WW...","..WW....",".WW.....","YYY.....","YYYY...."],
-  draw:["R.N.R.N.","R.N.R.N.","B.B.B.B.","B.B.B.B.","B.B.B.B.","B.B.B.B.","B.B.B.B.","B.B.B.B."],
-  skins:["..YYYY..",".YOOOOY.","YOYYYYOY","YOYOOYOY","YOYOOYOY","YOYYYYOY",".YOOOOY.","..YYYY.."],
-  vegas:["WWWWWWWW","WKWWWWKW","WWWWWWWW","WWWKKWWW","WWWKKWWW","WWWWWWWW","WKWWWWKW","WWWWWWWW"],
+// 선 아이콘 (currentColor)
+const ICON={
+  stroke:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V3"/><path d="M6 4h11l-3 4 3 4H6"/><path d="M3 21h8"/></svg>',
+  draw:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 21V7"/><path d="M10 21V4"/><path d="M14 21V6"/><path d="M19 21V3"/><path d="M3 21h18"/></svg>',
+  skins:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9"/><path d="M14.8 9.4c-.6-1-1.6-1.4-2.8-1.4-1.6 0-2.8.8-2.8 2 0 2.8 5.8 1.4 5.8 4.1 0 1.3-1.3 2.1-3 2.1-1.4 0-2.5-.6-3-1.6"/></svg>',
+  vegas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>',
+  play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l10.5-6.5z"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="18" r="1" fill="currentColor"/></svg>',
+  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  chev:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
 };
+const LOGO=`<svg viewBox="0 0 64 64" aria-hidden="true">
+  <ellipse cx="32" cy="52" rx="22" ry="5" fill="rgba(255,255,255,.16)"/>
+  <ellipse cx="38" cy="51" rx="5" ry="1.8" fill="rgba(0,0,0,.35)"/>
+  <path d="M31 51V10" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <path class="flagcloth" d="M32 11h18l-5 7 5 7H32z" fill="#e5483b"/>
+  <g class="ballg"><circle cx="20" cy="47.5" r="4.5" fill="#fff"/></g>
+</svg>`;
 const MODE_DESC={
-  stroke:['타수 차이만큼 서로 주고받는 가장 기본 내기','모든 사람끼리 1:1로 계산 (타수 차 × 타당)','더블파·버디가 나오면 다음 홀 ×2 배판','2~4명'],
-  draw:['홀이 끝나면 스틱을 뽑아 2:2 편을 정한다','편 타수 합이 적은 쪽이 홀 상금을 반씩','조커를 뽑으면 그 홀은 무조건 보기','동타면 상금 이월 · 4명'],
-  skins:['홀마다 걸린 상금(스킨)을 혼자 1등이 독식','공동 1등이면 다음 홀로 이월돼 판이 커짐','판돈은 사람마다 따로 정할 수 있음','2~4명'],
-  vegas:['홀이 끝나면 스틱으로 2:2 편을 뽑는다','두 사람 점수를 붙여 숫자로 (4·5 → 45)','상대 편이 버디면 내 숫자 뒤집기 (45 → 54)','숫자 차이 × 타당 · 4명'],
+  stroke:['타수 차이만큼 서로 주고받는 기본 내기','모든 사람끼리 1:1로 계산합니다 (타수 차 × 타당).','더블파나 버디가 나오면 다음 홀은 ×2 배판입니다.','버디·롱기·니어 보너스, OB·벙커·해저드 벌금이 붙습니다.'],
+  draw:['홀이 끝나면 스틱으로 2:2 편을 뽑는 내기','각자 판돈을 내고, 홀마다 정한 상금을 타수 합이 적은 편이 반씩 가져갑니다.','조커를 뽑은 사람은 그 홀을 무조건 보기로 계산합니다.','동타면 상금이 다음 홀로 이월됩니다.'],
+  skins:['홀 상금을 혼자 1등 한 사람이 독식','각자 판돈을 내고, 홀마다 걸린 상금(스킨)을 단독 1등이 모두 가져갑니다.','공동 1등이면 다음 홀로 이월돼 상금이 커집니다.','판돈은 사람마다 다르게 정할 수 있습니다.'],
+  vegas:['2:2 편 점수를 붙여 숫자로 겨루는 내기','홀이 끝나면 스틱으로 편을 뽑고, 두 사람 점수를 붙여 숫자를 만듭니다 (4·5 → 45).','상대 편에 버디가 나오면 내 숫자를 뒤집습니다 (45 → 54).','숫자 차이 × 타당을 진 편이 이긴 편에게 냅니다.'],
 };
-const STARS=[[8,12],[22,6],[37,18],[52,9],[66,15],[81,7],[92,20],[14,28],[47,30],[75,26],[30,40],[88,38],[5,44],[60,42]];
 function renderHome(){
   const hs=loadHist();
-  const {rows}=compute();const done=rows.filter(x=>x.counted).length;
+  const {rows,total}=compute();const done=rows.filter(x=>x.counted).length;
+  const best=Math.max(...total),bi=total.indexOf(best);
   document.getElementById('scr-home').innerHTML=`
-  <div class="stars">${STARS.map(([x,y],i)=>`<i style="left:${x}%;top:${y}%;animation-delay:${(i%5)*.4}s"></i>`).join('')}</div>
-  <div class="hm">
-    <h1 class="logo"><span class="l1">GOLF</span><span class="l2">BET</span></h1>
-    <div class="tagline">골프 내기 정산기</div>
-    <div class="scene">
-      <div class="hole"></div>
-      ${pxArt(SPR.flag,PAL,6,'flag')}
-      ${pxArt(SPR.ball,PAL,5,'ball')}
-      <div class="ground"></div>
-    </div>
-    <div class="menu">
-      ${st.active?`<button class="pxbtn y" data-act="resume">▶ 이어하기<small>${M().name} · ${done}/18홀 · ${esc(COURSES[st.course].name)}</small></button>`:''}
-      <button class="pxbtn ${st.active?'':'y'}" data-act="newgame">새 게임</button>
-      <button class="pxbtn" data-act="history">라운드 기록<small>${hs.length?`${hs.length}개 저장됨`:'아직 없음'}</small></button>
-    </div>
-    <div class="blink">PRESS START</div>
-    <div class="foot">기록은 이 휴대폰에만 저장됩니다</div>
-  </div>`;
+  <div class="hero">
+    <div class="mark">${LOGO}</div>
+    <div class="title">GOLF <span>BET</span></div>
+    <div class="tagline">골프 스코어 · 내기 정산</div>
+  </div>
+  <div class="menu">
+    ${st.active?`<button class="mbtn primary" data-act="resume"><span class="ic">${ICON.play}</span>
+      <span class="tx"><b>이어하기</b><small>${M().name} · ${done}/18홀${done&&best>0?` · 1등 ${esc(st.names[bi])} ${sgn(best)}`:''}</small></span><span class="chev">${ICON.chev}</span></button>`:''}
+    <button class="mbtn ${st.active?'':'primary'}" data-act="newgame"><span class="ic">${ICON.plus}</span>
+      <span class="tx"><b>새 게임</b><small>내기 방식을 고르고 시작합니다</small></span><span class="chev">${ICON.chev}</span></button>
+    <button class="mbtn" data-act="history"><span class="ic">${ICON.list}</span>
+      <span class="tx"><b>라운드 기록</b><small>${hs.length?`저장된 라운드 ${hs.length}개`:'아직 저장된 라운드가 없습니다'}</small></span><span class="chev">${ICON.chev}</span></button>
+  </div>
+  <div class="homefoot">기록은 이 휴대폰에만 저장됩니다</div>`;
 }
 function renderModes(){
   if(!selMode)selMode=st.mode;
   const card=id=>{
     const m=MODES[id],on=id===selMode;
-    return `<button class="mcard ${on?'on':''}" data-act="pickmode" data-m="${id}" aria-expanded="${on}">
-        <span class="cur">▶</span>${pxArt(SPR[id],PAL,4,'mico')}
-        <span class="mn"><b>${m.name}</b><small>${m.en} · ${m.min===m.max?m.min+'P':m.min+'-'+m.max+'P'}</small></span>
+    return `<div class="mcard ${on?'on':''}">
+      <button class="row1" style="width:100%;text-align:left" data-act="pickmode" data-m="${id}" aria-expanded="${on}">
+        <span class="ic">${ICON[id]}</span>
+        <span class="tx"><b>${m.name}</b><small>${esc(MODE_DESC[id][0])}</small></span>
+        <span class="ppl">${m.min===m.max?m.min+'명':m.min+'~'+m.max+'명'}</span>
       </button>
-      ${on?`<div class="mdesc">${MODE_DESC[id].map((t,i)=>`<p style="--d:${i}">${esc(t)}</p>`).join('')}
-        <button class="pxbtn y" data-act="startmode">이 모드로 시작</button></div>`:''}`;
+      <div class="mdesc"><div>
+        <ul>${MODE_DESC[id].slice(1).map(t=>`<li>${esc(t)}</li>`).join('')}</ul>
+        <button class="go" data-act="startmode" ${on?'':'tabindex="-1"'}>${m.name}로 시작</button>
+      </div></div>
+    </div>`;
   };
   document.getElementById('scr-modes').innerHTML=`
-  <div class="ms-h"><button class="pxback" data-act="home" aria-label="처음으로">◀</button><div class="ms-t">MODE SELECT</div></div>
-  <div class="ms-sub">모드를 누르면 어떤 내기인지 설명이 나옵니다</div>
-  <div class="mlist ${selMode?'has':''}">${Object.keys(MODES).map(card).join('')}</div>`;
+  <div class="cl-h"><button class="back" data-act="home" aria-label="처음으로">${ICON.back}</button><h1>내기 방식</h1></div>
+  <div class="cl-sub">방식을 누르면 규칙 설명이 펼쳐집니다.</div>
+  <div class="mlist has">${Object.keys(MODES).map(card).join('')}</div>`;
 }
 function renderHist(){
   const hs=loadHist().slice().reverse();
@@ -1081,34 +1117,32 @@ function renderHist(){
   const rec=histSel&&hs.find(x=>x.id===histSel);
   if(!rec){
     el.innerHTML=`
-    <div class="ms-h"><button class="pxback" data-act="home" aria-label="처음으로">◀</button><div class="ms-t">RECORDS</div></div>
-    <div class="ms-sub">${hs.length?'라운드를 누르면 자세히 볼 수 있습니다':'아직 저장된 라운드가 없습니다. 게임 화면에서 "라운드 종료"를 누르면 여기에 저장됩니다.'}</div>
-    <div class="mlist">${hs.map(x=>{
-      const best=Math.max(...x.total),wi=x.total.indexOf(best);
-      return `<button class="mcard" data-act="openrec" data-id="${esc(x.id)}">
-        <span class="mn"><b>${esc(x.label)}</b><small>${esc((MODES[x.mode]||MODES.stroke).en)} · ${x.holesDone}/18</small>
-        <span class="hsum">${esc((MODES[x.mode]||MODES.stroke).name)} · ${esc(x.names.join(', '))}${best>0?` · 1등 ${esc(x.names[wi])} ${sgn(best)}`:''}</span></span></button>`;}).join('')}</div>`;
+    <div class="cl-h"><button class="back" data-act="home" aria-label="처음으로">${ICON.back}</button><h1>라운드 기록</h1></div>
+    <div class="cl-sub">${hs.length?'라운드를 누르면 결과와 스코어를 볼 수 있습니다.':''}</div>
+    ${hs.length?`<div class="mlist">${hs.map(x=>{
+      const best=Math.max(...x.total),wi=x.total.indexOf(best),md=MODES[x.mode]||MODES.stroke;
+      return `<button class="hitem" data-act="openrec" data-id="${esc(x.id)}">
+        <span class="tx"><b>${esc(x.label)}</b><small>${esc(md.name)} · ${x.holesDone}/18홀 · ${esc(x.names.join(', '))}</small></span>
+        ${best>0?`<span class="amt pos">${esc(x.names[wi])} ${sgn(best)}</span>`:''}<span class="chev" style="opacity:.4">${ICON.chev}</span></button>`;}).join('')}</div>`
+      :`<div class="empty-note">아직 저장된 라운드가 없습니다.<br>게임 화면 아래 "라운드 종료"를 누르면 그날 날짜로 저장됩니다.</div>`}`;
     return;
   }
-  const cs=COURSES[rec.course];
+  const cs=COURSES[rec.course],md=MODES[rec.mode]||MODES.stroke;
   el.innerHTML=`
-  <div class="ms-h"><button class="pxback" data-act="histback" aria-label="목록으로">◀</button><div class="ms-t">${esc(rec.label)}</div></div>
-  <div class="ms-sub">${esc((MODES[rec.mode]||MODES.stroke).name)} · ${esc(cs?cs.name:'')} · ${rec.holesDone}/18홀</div>
-  <div class="hcard">
-    <div class="hh">최종 결과</div>
-    ${rec.names.map((nm,k)=>`<div class="hrow"><span>${esc(nm)}${rec.stakes?`<small> 판돈 ${won(rec.stakes[k])} · 상금 ${won(rec.prizeTot[k])}</small>`:''}</span><b class="${rec.total[k]>0?'up':rec.total[k]<0?'dn':''}">${sgn(rec.total[k])}</b></div>`).join('')}
-  </div>
-  <div class="hcard">
-    <div class="hh">${rec.stakes?'보너스 정산':'정산'}</div>
-    ${rec.transfers.length?rec.transfers.map(t=>`<div class="hrow"><span>${esc(rec.names[t.from])} → ${esc(rec.names[t.to])}</span><b>${won(t.amt)}</b></div>`).join(''):'<div class="hrow"><span>주고받을 돈 없음</span></div>'}
-    ${rec.potBy&&rec.potBy.some(Boolean)?`<div class="hrow"><span>공금 (캐디피 등)</span><b>${won(rec.potBy.reduce((a,b)=>a+b,0))}</b></div>`:''}
-  </div>
-  <div class="hcard htbl"><table>
+  <div class="cl-h"><button class="back" data-act="histback" aria-label="목록으로">${ICON.back}</button><h1>${esc(rec.label)}</h1></div>
+  <div class="cl-sub">${esc(md.name)} · ${esc(cs?cs.name:'')} · ${rec.holesDone}/18홀</div>
+  <div class="hsec">최종 결과</div>
+  <div class="settle">${rec.names.map((nm,k)=>`<div class="row"><span class="ell">${esc(nm)}${rec.stakes?` <small class="inl">판돈 ${won(rec.stakes[k])} · 상금 ${won(rec.prizeTot[k])}</small>`:''}</span><b class="num ${cls(rec.total[k])}">${sgn(rec.total[k])}</b></div>`).join('')}</div>
+  <div class="hsec">${rec.stakes?'보너스 정산':'정산'}</div>
+  <div class="settle">${rec.transfers.length?rec.transfers.map(t=>`<div class="row"><span class="ell">${esc(rec.names[t.from])} → ${esc(rec.names[t.to])}</span><b class="num">${won(t.amt)}</b></div>`).join(''):'<div class="empty">주고받을 돈이 없습니다</div>'}
+    ${rec.potBy&&rec.potBy.some(Boolean)?`<div class="row pot"><span>공금 (캐디피 등)</span><b class="num">${won(rec.potBy.reduce((a,b)=>a+b,0))}</b></div>`:''}</div>
+  <div class="hsec">스코어카드</div>
+  <div class="tbl"><table>
     <thead><tr><th>홀</th><th>Par</th>${rec.names.map(nm=>`<th>${esc(nm)}</th>`).join('')}</tr></thead>
-    <tbody>${rec.pars.map((par,i)=>`<tr><td>${i+1}</td><td>${par}</td>${rec.names.map((_,k)=>`<td>${rec.scores[i][k]??'-'}</td>`).join('')}</tr>`).join('')}
-      <tr class="sum"><td>합계</td><td>${rec.pars.reduce((a,b)=>a+b,0)}</td>${rec.names.map((_,k)=>`<td>${rec.scores.reduce((a,x)=>a+(x[k]??0),0)||'-'}</td>`).join('')}</tr>
+    <tbody>${rec.pars.map((par,i)=>`<tr><td>${i+1}</td><td>${par}</td>${rec.names.map((_,k)=>`<td class="num">${rec.scores[i][k]??'-'}</td>`).join('')}</tr>`).join('')}
+      <tr class="sum"><td>합계</td><td>${rec.pars.reduce((a,b)=>a+b,0)}</td>${rec.names.map((_,k)=>`<td class="num">${rec.scores.reduce((a,x)=>a+(x[k]??0),0)||'-'}</td>`).join('')}</tr>
     </tbody></table></div>
-  <button class="pxbtn delbtn" data-act="delrec" data-id="${esc(rec.id)}">이 기록 삭제</button>`;
+  <button class="danger delbtn" data-act="delrec" data-id="${esc(rec.id)}">이 기록 삭제</button>`;
 }
 // 새 라운드 준비: 이름·금액·코스 같은 설정은 이어 쓰고 스코어만 새로
 function freshRound(mode){
@@ -1153,8 +1187,8 @@ document.addEventListener('click',e=>{
   const a=b.dataset.act,h=st.holes[st.cur],p=+b.dataset.p,v=+b.dataset.v;
   switch(a){
     case 'go':{const i=+b.dataset.i;if(!(i>=0&&i<=17))return;st.cur=i;save();render();
-      if(b.tagName==='TR'||b.closest('.mult'))window.scrollTo({top:0,behavior:'smooth'});return;}
-    case 's':h.s[p]=h.s[p]==null?h.par+v:Math.max(1,Math.min(maxS(h),h.s[p]+v));h.t[p]=true;break;
+      if(b.tagName==='TR'||b.closest('.mult')||b.closest('.nav'))window.scrollTo({top:0,behavior:'smooth'});return;}
+    case 's':try{navigator.vibrate&&navigator.vibrate(8);}catch(_){}h.s[p]=h.s[p]==null?h.par+v:Math.max(1,Math.min(maxS(h),h.s[p]+v));h.t[p]=true;break;
     case 'par':h.s[p]=h.par;h.t[p]=true;break;
     case 'setpar':h.par=v;h.s.forEach((x,k)=>{if(!h.t[k]&&x!=null)h.s[k]=v;});clampHole(h);break;
     case 'ob':case 'bk':case 'hz':case 'tp':h[a][p]=(h[a][p]+1)%4;break;
@@ -1191,8 +1225,13 @@ document.addEventListener('click',e=>{
       if(st.active&&!armOrRun(b,'newgame','진행 중 라운드가 지워집니다 · 한 번 더'))return;
       selMode=null;show('modes');return;
     case 'pickmode':{
-      selMode=b.dataset.m;renderModes();
-      const d=document.querySelector('.mdesc');if(d)d.scrollIntoView({behavior:'smooth',block:'nearest'});return;}
+      selMode=b.dataset.m;
+      document.querySelectorAll('#scr-modes .mcard').forEach(c=>{
+        const on=c.querySelector('[data-act=pickmode]').dataset.m===selMode;
+        c.classList.toggle('on',on);c.querySelector('[data-act=pickmode]').setAttribute('aria-expanded',on);
+        const go=c.querySelector('.go');if(on)go.removeAttribute('tabindex');else go.setAttribute('tabindex','-1');
+      });
+      const card=b.closest('.mcard');setTimeout(()=>card.scrollIntoView({behavior:'smooth',block:'nearest'}),320);return;}
     case 'startmode':freshRound(selMode||'stroke');save();openSheet('setup');return;
     case 'startgame':
       st.active=true;st.cur=0;save();
