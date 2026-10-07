@@ -654,7 +654,7 @@ function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;',
 // k의 타수 몫 = 타당×배수×Σ(상대 타수 − 내 타수). 버디/롱기/니어는 나머지 전원이 각각 보너스를 낸다.
 // OB·벙커·해저드 벌금은 배수와 상관없이 1회당 고정 금액. 공금 적립이면 공금(캐디피 등)으로, 아니면 나머지 전원에게 각각 낸다.
 // 배판: 더블파나 버디(이하)가 한 명이라도 나오면 다음 홀 ×2 (누적 없음, 배배판 없음).
-function compute(){
+function compute(final){
   const n=st.n,ks=P();
   const rows=[];let mult=1,broken=false,firstGap=-1,carry=0;
   const total=fill(0).slice(0,n), potBy=fill(0).slice(0,n), prizeTot=fill(0).slice(0,n), sideTot=fill(0).slice(0,n), finePaid=fill(0).slice(0,n);
@@ -757,7 +757,18 @@ function compute(){
     });r.cum=[...total];
     mult=next;rows.push(r);
   });
-  return{rows,total,potBy,prizeTot,sideTot,carry,firstGap,memberNow:ks.map(k=>isOECD()&&memberOf(k)),
+  // 판돈은 다 쓰지 않아도 된다: 상금으로 안 나간 판돈(과 끝까지 못 가져간 이월 상금)은 라운드가 끝나면 공금으로
+  let potLeft=0,potFinal=false,carryLeft=0;
+  if(usePot()){
+    const used=rows.reduce((a,r)=>a+(r.counted?prizeOf(r.i):0),0);
+    potLeft=Math.max(0,potTotal()-used);
+    potFinal=!!final||rows.every(r=>r.counted);
+    if(potFinal){
+      ks.forEach(k=>{total[k]-=potLeft*shareOf(k);potBy[k]+=potLeft*shareOf(k)+carry*shareOf(k);});
+      carryLeft=carry;carry=0;
+    }
+  }
+  return{rows,total,potBy,prizeTot,sideTot,carry,potLeft,potFinal,carryLeft,firstGap,memberNow:ks.map(k=>isOECD()&&memberOf(k)),
     oecdHold:ks.map(holdOf),oecdThr:ks.map(thrOf)};
 }
 // 최소 송금 목록: 많이 잃은 사람이 많이 딴 사람에게부터
@@ -806,7 +817,7 @@ function render(){
   disarm();
   const fx=document.querySelector('details.fix');if(fx)fixOpen=fx.open;
   if(fillDefault(st.holes[st.cur]))save();
-  const {rows,total,potBy,prizeTot,sideTot,carry,firstGap,memberNow,oecdHold,oecdThr}=compute();
+  const {rows,total,potBy,prizeTot,sideTot,carry,potLeft,potFinal,carryLeft,firstGap,memberNow,oecdHold,oecdThr}=compute();
   const N=st.names,n=st.n,ks=P(),c=st.cur,h=st.holes[c],r=rows[c];
   const mem=r.counted?r.member:memberNow;
   const doneCnt=rows.filter(x=>x.counted).length;
@@ -940,14 +951,15 @@ function render(){
   // 공금 벌금은 사람끼리 주고받는 돈이 아니므로 송금 계산에서 빼고 따로 보여준다
   const tf=transfers(usePot()?sideTot:total.map((v,k)=>v+potBy[k]));
   const pd=prizeSum()-potTotal();
-  const prizeRows=usePot()?`<div class="row sec"><span>판돈 상금 <small>판돈 합계 ${won(potTotal())} · 홀 상금 ${st.prizeMode==='manual'?'홀마다 직접 설정':`홀당 ${won(prizeOf(0))}`}${Math.abs(pd)>=1?` · 상금 합계가 판돈보다 ${won(pd)} ${pd>0?'많음':'적음'}`:''}${carry?` · 이월 중 ${won(carry)}`:''}</small></span></div>
+  const prizeRows=usePot()?`<div class="row sec"><span>판돈 상금 <small>판돈 합계 ${won(potTotal())} · 홀 상금 ${st.prizeMode==='manual'?'홀마다 직접 설정':`홀당 ${won(prizeOf(0))}`}${pd>=1?` · 상금 합계가 판돈보다 ${won(pd)} 많음`:''}${carry?` · 이월 중 ${won(carry)}`:''}${!potFinal&&potLeft>=1?` · 남은 판돈 ${won(potLeft)} (끝나고 남으면 공금)`:''}</small></span></div>
     ${ks.map(k=>`<div class="row"><span class="ell">${esc(N[k])} <small class="inl">판돈 ${won(st.stakes[k])}</small></span><b class="num">상금 ${won(prizeTot[k])}</b></div>`).join('')}
     <div class="row sec"><span>보너스${st.potMode==='each'?'·벌금':''}${hasHcp()?'·핸디':''} 정산 <small>사람끼리 주고받을 돈</small></span></div>`:'';
   const settle=prizeRows+(tf.length
     ?tf.map(t=>`<div class="row"><span class="ell">${esc(N[t.from])} → ${esc(N[t.to])}</span><b class="num">${won(t.amt)}</b></div>`).join('')
     :`<div class="empty">${doneCnt?'주고받을 돈이 없습니다':'아직 계산된 홀이 없습니다'}</div>`);
   const potSum=potBy.reduce((a,b)=>a+b,0);
-  const pot=potSum?`<div class="row pot"><span>공금 (캐디피 등) <small>${ks.filter(k=>potBy[k]).map(k=>`${esc(N[k])} ${won(potBy[k])}`).join(' · ')}</small></span><b class="num">${won(potSum)}</b></div>`:'';
+  const potExtra=potFinal&&potLeft+carryLeft>=1?`남은 판돈 ${won(potLeft+carryLeft)} 포함 · `:'';
+  const pot=potSum?`<div class="row pot"><span>공금 (캐디피 등) <small>${potExtra}${ks.filter(k=>potBy[k]).map(k=>`${esc(N[k])} ${won(potBy[k])}`).join(' · ')}</small></span><b class="num">${won(potSum)}</b></div>`:'';
 
   document.getElementById('main').innerHTML=`
   <div class="bar">
@@ -1109,9 +1121,9 @@ function fillEvenPrizes(){
 function updPsum(){
   const el=document.getElementById('psum');if(!el)return;
   const d=prizeSum()-potTotal();
-  el.textContent=`판돈 합계 ${won(potTotal())} · 상금 합계 ${won(prizeSum())}`+(Math.abs(d)>=1?` (${won(d)} ${d>0?'초과':'남음'})`:'');
-  el.className='psum'+(Math.abs(d)>=1?' bad':'');
-  const fb=document.getElementById('fitStakes');if(fb)fb.hidden=Math.abs(d)<1;
+  el.textContent=`판돈 합계 ${won(potTotal())} · 상금 합계 ${won(prizeSum())}`+(d>=1?` (${won(d)} 초과)`:d<=-1?` · 남는 ${won(-d)}은 공금으로`:'');
+  el.className='psum'+(d>=1?' bad':'');
+  const fb=document.getElementById('fitStakes');if(fb)fb.hidden=d<1;
 }
 // 설정창(시트). 게임 시작 전에도, 라운드 중간에도 연다.
 function renderSettings(){
@@ -1234,9 +1246,9 @@ const MODE_RULES={
     더블파나 버디(이글 포함)가 한 명이라도 나오면 다음 홀은 ×2 배판입니다. 배판은 겹치지 않습니다(배배판 없음).`,
   draw:()=>`뽑기: 각자 판돈을 내고, 홀마다 정해진 상금을 타수 합이 적은 편 두 명이 반씩 가져갑니다.<br>
     홀이 끝나고 스코어를 다 넣은 뒤 "뽑기"를 누르면 스틱 5개(빨강2·초록2·조커1)로 편을 뽑습니다. 조커를 뽑은 사람은 한 명 모자란 색 편이 되고, 실제 타수와 상관없이 보기로 계산합니다. 아무도 조커를 안 뽑으면 색깔대로 편입니다.<br>
-    동타면 상금이 다음 홀로 이월되고, 18번 홀까지 동타면 판돈 비율대로 나눕니다.`,
+    동타면 상금이 다음 홀로 이월되고, 18번 홀까지 동타면 판돈 비율대로 나눕니다. 상금으로 다 쓰지 않고 남은 판돈은 라운드가 끝나면 공금이 됩니다.`,
   skins:()=>`스킨스: 각자 판돈을 내고, 홀마다 정해진 상금(스킨)을 혼자 가장 적게 친 사람이 전부 가져갑니다.<br>
-    공동 1등이면 아무도 못 가져가고 다음 홀로 이월돼 상금이 커집니다. 18번 홀까지 이월되면 판돈 비율대로 나눕니다.`,
+    공동 1등이면 아무도 못 가져가고 다음 홀로 이월돼 상금이 커집니다. 18번 홀까지 이월되면 판돈 비율대로 나눕니다. 상금으로 다 쓰지 않고 남은 판돈은 라운드가 끝나면 공금이 됩니다.`,
   hussein:()=>`후세인: 1명(후세인)과 나머지 3명이 겨룹니다. 1번 홀 후세인은 뽑기로 정하고, 2번 홀부터는 직전 홀 ${st.husRank}등이 후세인이 됩니다(${st.husRank}등이 동타면 직전 후세인 유지).<br>
     후세인 타수 × 3과 나머지 3명 타수 합을 비교해 적은 쪽이 이깁니다. 후세인이 이기면 3명이 각각 홀당 금액을 후세인에게 내고(후세인은 3배), 지면 후세인이 3명에게 각각 냅니다.<br>
     동타면 다음 홀로 이월돼 금액이 쌓입니다. 더블파나 버디가 나오면 다음 홀 ×2 배판입니다.`,
@@ -1492,8 +1504,8 @@ async function copyResult(rec,live){
   if(await copyText(t))toast('결과를 복사했습니다. 카톡 등에 붙여넣으세요',null);
   else{try{if(navigator.share){await navigator.share({text:t});return;}}catch(e){if(e&&e.name==='AbortError')return;}toast('복사가 안 되는 환경입니다',null);}
 }
-function makeRecord(){
-  const {rows,total,potBy,prizeTot,sideTot}=compute();
+function makeRecord(live){
+  const {rows,total,potBy,prizeTot,sideTot}=compute(!live);
   const n=st.n,pot=usePot(),d=new Date(),p2=x=>String(x).padStart(2,'0');
   const date=`${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
   const same=loadHist().filter(x=>x.date===date).length;
@@ -1592,7 +1604,7 @@ document.addEventListener('click',e=>{
     case 'history':histSel=null;show('hist');return;
     case 'openrec':histSel=b.dataset.id;renderHist();window.scrollTo(0,0);return;
     case 'histback':histSel=null;renderHist();return;
-    case 'copyres':copyResult(makeRecord(),true);return;
+    case 'copyres':copyResult(makeRecord(true),true);return;
     case 'copyrec':{const rec=loadHist().find(x=>x.id===b.dataset.id);if(rec)copyResult(rec,false);return;}
     case 'delrec':{
       if(!armOrRun(b,'delrec','한 번 더 누르면 삭제'))return;
