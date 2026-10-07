@@ -491,7 +491,7 @@ function holeSub(i){return i<9?`전반 ${i+1}번`:`후반 ${i-8}번`;}
 const fill=v=>Array(MAXP).fill(v);
 const P=()=>[...Array(st.n).keys()];           // 이번 라운드 참가자 인덱스
 function blankHole(par){return{par,s:fill(null),t:fill(false),ob:fill(0),bk:fill(0),hz:fill(0),tp:fill(0),long:-1,near:-1,pair:0,joker:-1,c0:0,sticks:null,left:null,ok:false}}
-function blank(pars=STD_PARS,courseName=''){return{n:DEF_N,names:[...DEF_NAMES],unit:1000,bonus:5000,fine:2000,potMode:'pot',fineRule:'all',fineCap:0,oecdPct:60,oecdAmt:20000,mode:'stroke',vegasFlip:true,teeOrder:[0,1,2,3],husFirst:-1,husRank:2,hcpN:fill(0),hcpDir:fill(1),hcpUnit:1000,hcpOn:false,drawSrc:'auto',active:false,stakes:fill(45000),prizeMode:'flat',prizeFlat:10000,prizes:Array(18).fill(0),cur:0,courseName,holes:pars.map(blankHole)}}
+function blank(pars=STD_PARS,courseName=''){return{n:DEF_N,names:[...DEF_NAMES],unit:1000,bonus:5000,fine:2000,potMode:'pot',fineRule:'all',fineCap:0,oecdPct:60,oecdAmt:20000,mode:'stroke',vegasFlip:true,teeOrder:[0,1,2,3],husFirst:-1,husRank:2,hcpN:fill(0),hcpDir:fill(1),hcpUnit:1000,hcpOn:false,drawSrc:'auto',jokerScore:'bogey',active:false,stakes:fill(45000),prizeMode:'flat',prizeFlat:10000,prizes:Array(18).fill(0),cur:0,courseName,holes:pars.map(blankHole)}}
 const touched=h=>h.t.some(Boolean);
 // 계산에 넣는 홀: 스코어를 직접 넣었거나, 이 홀을 끝내고 다음 홀로 넘어갔을 때 (열어 보기만 한 홀은 제외)
 const confirmed=h=>touched(h)||h.ok===true;
@@ -525,7 +525,7 @@ function normalize(raw){
     n,active,
     names:arr(raw.names,(v,k)=>(typeof v==='string'&&v.trim())||DEF_NAMES[k]),
     unit:num(raw.unit,d.unit), bonus:num(raw.bonus,d.bonus),
-    fine:num(raw.fine,d.fine), fineRule:raw.fineRule==='oecd'?'oecd':'all', fineCap:num(raw.fineCap,0), oecdPct:[50,60,70,80,100].includes(+raw.oecdPct)?+raw.oecdPct:60, oecdAmt:num(raw.oecdAmt,20000), potMode:['each','prize'].includes(raw.potMode)?raw.potMode:'pot', mode:MODES[raw.mode]?raw.mode:'stroke', vegasFlip:raw.vegasFlip!==false, husFirst:[0,1,2,3].includes(raw.husFirst)?raw.husFirst:-1, ...hcpFromRaw(raw,arr), hcpOn:raw.hcpOn===true, drawSrc:raw.drawSrc==='live'?'live':'auto', hcpUnit:num(raw.hcpUnit,1000), husRank:[1,2,3,4].includes(raw.husRank)?raw.husRank:2, teeOrder:Array.isArray(raw.teeOrder)&&[...raw.teeOrder].sort().join()==='0,1,2,3'?raw.teeOrder:[0,1,2,3], stakes:arr(raw.stakes,(v,k)=>num(v,num(raw.stake,d.stakes[k]))),
+    fine:num(raw.fine,d.fine), fineRule:raw.fineRule==='oecd'?'oecd':'all', fineCap:num(raw.fineCap,0), oecdPct:[50,60,70,80,100].includes(+raw.oecdPct)?+raw.oecdPct:60, oecdAmt:num(raw.oecdAmt,20000), potMode:['each','prize'].includes(raw.potMode)?raw.potMode:'pot', mode:MODES[raw.mode]?raw.mode:'stroke', vegasFlip:raw.vegasFlip!==false, husFirst:[0,1,2,3].includes(raw.husFirst)?raw.husFirst:-1, ...hcpFromRaw(raw,arr), hcpOn:raw.hcpOn===true, drawSrc:raw.drawSrc==='live'?'live':'auto', jokerScore:['par','birdie','bogey','best'].includes(raw.jokerScore)?raw.jokerScore:'bogey', hcpUnit:num(raw.hcpUnit,1000), husRank:[1,2,3,4].includes(raw.husRank)?raw.husRank:2, teeOrder:Array.isArray(raw.teeOrder)&&[...raw.teeOrder].sort().join()==='0,1,2,3'?raw.teeOrder:[0,1,2,3], stakes:arr(raw.stakes,(v,k)=>num(v,num(raw.stake,d.stakes[k]))),
     prizeMode:['manual','flat'].includes(raw.prizeMode)?raw.prizeMode:'even', prizeFlat:num(raw.prizeFlat,10000),
     prizes:[...Array(18).keys()].map(i=>num(Array.isArray(raw.prizes)?raw.prizes[i]:undefined,d.prizes[i])),
     cur:Number.isInteger(raw.cur)&&raw.cur>=0&&raw.cur<18?raw.cur:0,
@@ -669,7 +669,17 @@ function hcpFromRaw(raw,arr){
     const sg=h.map((v,k)=>k<n?n*v-T:0);return{hcpN:sg.map(Math.abs),hcpDir:sg.map(v=>v<0?-1:1)};}
   return{hcpN:[0,0,0,0],hcpDir:[1,1,1,1]};
 }
-const effScore=(h,k,i)=>isDraw()&&h.joker===k?h.par+1:netS(h,k,i);
+// 조커 타수 (설정): 파 · 버디 · 보기 · 그 홀 최고 스코어(네 명 중 가장 적게 친 타수)
+const JOKER={par:'파',birdie:'버디',bogey:'보기',best:'최고 스코어'};
+const jokerName=()=>JOKER[st.jokerScore]||'보기';
+function jokerScore(h){
+  const j=st.jokerScore;
+  if(j==='par')return h.par;
+  if(j==='birdie')return h.par-1;
+  if(j==='best'){const v=P().map(k=>h.s[k]).filter(x=>x!=null);return v.length?Math.min(...v):h.par;}
+  return h.par+1;
+}
+const effScore=(h,k,i)=>isDraw()&&h.joker===k?jokerScore(h):netS(h,k,i);
 const teamNames=(h,t)=>P().filter(k=>teamOf(h,k)===t).map(k=>st.names[k]).join('·');
 function label(s,par,auto){
   if(s==null)return'미입력';
@@ -720,7 +730,7 @@ function compute(final){
     const win=w=>k=>w<0||w>=n?0:(k===w?n-1:-1);
     if(isDraw()){
       // 뽑기: 홀 상금(판돈에서 나옴)을 타수 합이 적은 편 두 명이 반씩 가져간다. 각자 상금에 보탠 몫은 판돈 비율대로.
-      // 조커는 보기로 계산. 동타면 상금이 다음 홀로 이월, 18번 홀까지 동타면 판돈 비율대로 돌려받음.
+      // 조커는 설정한 타수(기본 보기)로 계산. 동타면 상금이 다음 홀로 이월, 18번 홀까지 동타면 판돈 비율대로 돌려받음.
       const T=[0,0];ks.forEach(k=>T[teamOf(h,k)]+=effScore(h,k,i));
       const pool=prizeOf(i)+carry, w=T[0]<T[1]?0:T[0]>T[1]?1:-1;
       r.teams=T;r.win=w;r.pool=pool;r.carryIn=carry;
@@ -936,7 +946,7 @@ function render(){
       </div>
       <div class="step">
         <button class="pm" data-act="s" data-p="${k}" data-v="-1" aria-label="${esc(N[k])} 한 타 줄이기">−</button>
-        <button class="val ${vc}" data-act="par" data-p="${k}" aria-label="${esc(N[k])} 스코어 ${s}타${h.t[k]?'':' (기본값)'}, 누르면 파로 확정"><b class="num">${s==null?h.par:s}</b><small>${isDraw()&&h.joker===k?`조커(보기 ${h.par+1})`:label(s,h.par,!h.t[k])}</small></button>
+        <button class="val ${vc}" data-act="par" data-p="${k}" aria-label="${esc(N[k])} 스코어 ${s}타${h.t[k]?'':' (기본값)'}, 누르면 파로 확정"><b class="num">${s==null?h.par:s}</b><small>${isDraw()&&h.joker===k?`조커(${st.jokerScore==='best'?'최고':jokerName()} ${jokerScore(h)})`:label(s,h.par,!h.t[k])}</small></button>
         <button class="pm" data-act="s" data-p="${k}" data-v="1" aria-label="${esc(N[k])} 한 타 늘리기" ${s!=null&&s>=maxS(h)?'disabled':''}>+</button>
       </div>
     </div>`;
@@ -1095,7 +1105,7 @@ async function showDrawAnim(h,auto){
   const finish=()=>{
     P().forEach(reveal);stEls.slice(0,4).forEach(e=>e.style.opacity='0');
     res.innerHTML=`${badge(h,0)}${esc(teamNames(h,0))} &nbsp;vs&nbsp; ${badge(h,1)}${esc(teamNames(h,1))}`+
-      (!withJ?'':h.joker>=0?`<div style="font-size:13px;font-weight:500;opacity:.85">조커 ${esc(N[h.joker])}: 이 홀은 보기로 계산</div>`:`<div style="font-size:13px;font-weight:500;opacity:.85">조커가 남아서 색깔대로 편</div>`);
+      (!withJ?'':h.joker>=0?`<div style="font-size:13px;font-weight:500;opacity:.85">조커 ${esc(N[h.joker])}: 이 홀은 ${jokerName()}(${jokerScore(h)}타)로 계산</div>`:`<div style="font-size:13px;font-weight:500;opacity:.85">조커가 남아서 색깔대로 편</div>`);
     const R=compute().rows[hi];
     if(R&&R.counted&&R.vsum){
       const [a,b]=R.vsum,w=R.win;
@@ -1199,6 +1209,9 @@ function renderSettings(){
       <div class="psum" id="hcpsum">${hcpSummary()}</div>`:''}
       ${isDraw()||isHus()?`<div class="sec-h">${isHus()?'1번 홀 후세인 뽑기':'뽑기'}</div>
       <div class="seg" style="--k:2"><button type="button" class="${st.drawSrc!=='live'?'on':''}" data-act="drawsrc" data-v2="auto">앱에서 자동 뽑기</button><button type="button" class="${st.drawSrc==='live'?'on':''}" data-act="drawsrc" data-v2="live">현장에서 뽑고 입력</button></div>`:''}
+      ${isDraw()?`<div class="sec-h">조커 타수</div>
+      <div class="seg" style="--k:4">${Object.keys(JOKER).map(v=>`<button type="button" class="${st.jokerScore===v?'on':''}" data-act="jokersc" data-v2="${v}">${JOKER[v]}</button>`).join('')}</div>
+      <div class="psum">${st.jokerScore==='best'?'조커를 뽑은 사람은 그 홀에서 네 명 중 가장 적게 친 타수로 계산합니다.':`조커를 뽑은 사람은 실제 타수와 상관없이 ${jokerName()}로 계산합니다.`}</div>`:''}
       <div class="sec-h">금액</div>
       <div class="two">
         ${isHus()?`<label>후세인 순위<select id="husRank">${[1,2,3,4].map(v=>`<option value="${v}" ${st.husRank===v?'selected':''}>직전 홀 ${v}등${v===2?' (보통)':''}</option>`).join('')}</select></label>`:''}
@@ -1303,7 +1316,7 @@ const MODE_RULES={
   stroke:()=>`스트로크: 홀마다 모든 두 사람끼리 타수 차 × 타당 × 배수를 진 사람이 이긴 사람에게 냅니다.<br>
     더블파나 버디(이글 포함)가 한 명이라도 나오면 다음 홀은 ×2 배판입니다. 배판은 겹치지 않습니다(배배판 없음).`,
   draw:()=>`뽑기: 각자 판돈을 내고, 홀마다 정해진 상금을 타수 합이 적은 편 두 명이 반씩 가져갑니다.<br>
-    홀이 끝나고 스코어를 다 넣은 뒤 "뽑기"를 누르면 스틱 5개(빨강2·초록2·조커1)로 편을 뽑습니다. 조커를 뽑은 사람은 한 명 모자란 색 편이 되고, 실제 타수와 상관없이 보기로 계산합니다. 아무도 조커를 안 뽑으면 색깔대로 편입니다.<br>
+    홀이 끝나고 스코어를 다 넣은 뒤 "뽑기"를 누르면 스틱 5개(빨강2·초록2·조커1)로 편을 뽑습니다. 조커를 뽑은 사람은 한 명 모자란 색 편이 되고, 실제 타수와 상관없이 ${st.jokerScore==='best'?'그 홀 최고 스코어(네 명 중 가장 적게 친 타수)':jokerName()}로 계산합니다. 아무도 조커를 안 뽑으면 색깔대로 편입니다.<br>
     동타면 상금이 다음 홀로 이월되고, 18번 홀까지 동타면 판돈 비율대로 나눕니다. 상금으로 다 쓰지 않고 남은 판돈은 라운드가 끝나면 공금이 됩니다.`,
   skins:()=>`스킨스: 각자 판돈을 내고, 홀마다 정해진 상금(스킨)을 혼자 가장 적게 친 사람이 전부 가져갑니다.<br>
     공동 1등이면 아무도 못 가져가고 다음 홀로 이월돼 상금이 커집니다. 18번 홀까지 이월되면 판돈 비율대로 나눕니다. 상금으로 다 쓰지 않고 남은 판돈은 라운드가 끝나면 공금이 됩니다.`,
@@ -1369,7 +1382,7 @@ const LOGO=`<svg viewBox="0 0 64 64" aria-hidden="true">
 </svg>`;
 const MODE_DESC={
   stroke:['타수 차이만큼 서로 주고받는 기본 내기','모든 사람끼리 1:1로 계산합니다 (타수 차 × 타당).','더블파나 버디가 나오면 다음 홀은 ×2 배판입니다.','버디·롱기·니어 보너스, OB·벙커·해저드 벌금이 붙습니다.'],
-  draw:['홀이 끝나면 스틱으로 2:2 편을 뽑는 내기','각자 판돈을 내고, 홀마다 정한 상금을 타수 합이 적은 편이 반씩 가져갑니다.','조커를 뽑은 사람은 그 홀을 무조건 보기로 계산합니다.','동타면 상금이 다음 홀로 이월됩니다.'],
+  draw:['홀이 끝나면 스틱으로 2:2 편을 뽑는 내기','각자 판돈을 내고, 홀마다 정한 상금을 타수 합이 적은 편이 반씩 가져갑니다.','조커를 뽑은 사람은 그 홀을 정해진 타수(기본 보기, 설정에서 파·버디·최고 스코어로 변경)로 계산합니다.','동타면 상금이 다음 홀로 이월됩니다.'],
   skins:['홀 상금을 혼자 1등 한 사람이 독식','각자 판돈을 내고, 홀마다 걸린 상금(스킨)을 단독 1등이 모두 가져갑니다.','공동 1등이면 다음 홀로 이월돼 상금이 커집니다.','판돈은 사람마다 다르게 정할 수 있습니다.'],
   hussein:['후세인 1명 vs 나머지 3명, 후세인 타수 × 3으로 겨루는 내기','1번 홀은 뽑기, 그 다음은 직전 홀 N등(기본 2등)이 후세인이 됩니다.','후세인 타수 × 3과 나머지 3명 타수 합 중 적은 쪽이 이깁니다.','후세인이 이기면 3배를 받고, 지면 3명에게 각각 냅니다. 동타면 이월.'],
   vegas:['1·4등 vs 2·3등, 편 타수 합으로 겨루는 내기','1번 홀은 티샷 순서, 그 다음은 직전 홀 성적순으로 1·4등과 2·3등이 한 편이 됩니다.','두 사람 타수를 합쳐 적은 편이 이깁니다.','타수 합 차이 × 타당을 진 편 각자가 이긴 편 각자에게 냅니다.'],
@@ -1492,7 +1505,7 @@ function updParSums(){
 // 새 라운드 준비: 이름·금액·코스 같은 설정은 이어 쓰고 스코어만 새로
 function freshRound(mode){
   const keep={names:[...st.names],unit:st.unit,bonus:st.bonus,fine:st.fine,potMode:st.potMode,fineRule:st.fineRule,fineCap:st.fineCap,oecdPct:st.oecdPct,oecdAmt:st.oecdAmt,
-    stakes:[...st.stakes],prizeMode:st.prizeMode,prizeFlat:st.prizeFlat,prizes:[...st.prizes],vegasFlip:st.vegasFlip,teeOrder:[...st.teeOrder],husRank:st.husRank,hcpN:[...st.hcpN],hcpDir:[...st.hcpDir],hcpUnit:st.hcpUnit,hcpOn:st.hcpOn,drawSrc:st.drawSrc,n:st.n};
+    stakes:[...st.stakes],prizeMode:st.prizeMode,prizeFlat:st.prizeFlat,prizes:[...st.prizes],vegasFlip:st.vegasFlip,teeOrder:[...st.teeOrder],husRank:st.husRank,hcpN:[...st.hcpN],hcpDir:[...st.hcpDir],hcpUnit:st.hcpUnit,hcpOn:st.hcpOn,drawSrc:st.drawSrc,jokerScore:st.jokerScore,n:st.n};
   st=blank(st.holes.map(h=>h.par),st.courseName);Object.assign(st,keep);
   st.mode=mode;const m=MODES[mode];st.n=Math.min(m.max,Math.max(m.min,st.n));st.active=false;
 }
@@ -1628,6 +1641,7 @@ document.addEventListener('click',e=>{
       break;}
     case 'husset':st.husFirst=p;break;
     case 'husclear':st.husFirst=-1;break;
+    case 'jokersc':st.jokerScore=JOKER[b.dataset.v2]?b.dataset.v2:'bogey';save();render();renderSettings();return;
     case 'drawsrc':st.drawSrc=b.dataset.v2==='live'?'live':'auto';save();render();renderSettings();return;
     case 'hcpon':st.hcpOn=!st.hcpOn;save();render();renderSettings();return;
     case 'hcpdir':st.hcpDir[p]=v<0?-1:1;save();render();renderSettings();return;
