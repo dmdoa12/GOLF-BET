@@ -87,28 +87,29 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .mult .jump{margin-left:4px;padding:0 4px;text-decoration:underline;font-weight:700}
 
 .pls{margin-top:12px}
-.pl{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.pl{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid var(--line)}
 .pinfo{flex:1;min-width:0}
 .pname{font-weight:700;font-size:16px;display:flex;flex-wrap:wrap;align-items:center;row-gap:2px}
 .pname .nmlink{min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:5px}
 .step{display:flex;align-items:center;gap:4px;flex:none}
-.step button.pm{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);font-size:22px;line-height:1}
+.step button.pm{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);font-size:22px;line-height:1}
 .step button.pm:active{background:var(--green2)}
 .step button.pm:disabled{opacity:.3;cursor:default}
-.val{width:66px;text-align:center;border-radius:10px;padding:0 2px}
+.val{width:60px;text-align:center;border-radius:10px;padding:0 2px}
 .val b{display:block;font-size:28px;line-height:1.1}
 .val small{display:block;font-size:11px;color:var(--mut);white-space:nowrap}
 .val.bir small{color:var(--blue);font-weight:700}
 .val.tri small{color:var(--red);font-weight:700}
-.tags{display:flex;gap:3px;margin-top:5px;flex-wrap:wrap}
-.tag{height:28px;padding:0 6px;border-radius:14px;border:1px solid var(--line);font-size:12px;color:var(--mut)}
+.tags{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.tag{height:34px;min-width:38px;padding:0 7px;border-radius:17px;border:1px solid var(--line);font-size:12px;color:var(--mut)}
 .tag .cnt{font-size:10px;margin-left:1px;vertical-align:1px}
 .bonus .seg button{font-size:12px;padding:0 2px;text-overflow:clip}
 @media (max-width:359px){
-  .step button.pm{width:38px;height:38px}
-  .val{width:58px}.val b{font-size:26px}
-  .tag{padding:0 5px;font-size:11.5px}
-  .pl{gap:6px}
+  .step button.pm{width:34px;height:34px}
+  .step{gap:3px}
+  .val{width:52px}.val b{font-size:25px}.val small{font-size:10px}
+  .tag{padding:0 5px;min-width:34px;font-size:11.5px}
+  .pl{gap:5px}
 }
 .tag.on{background:var(--redbg);border-color:var(--red);color:var(--red);font-weight:700}
 
@@ -220,7 +221,7 @@ summary{padding:14px 16px;font-weight:700;cursor:pointer}
 .set{padding:0 16px 16px;display:grid;gap:12px}
 .set label{display:grid;gap:4px;font-size:13px;color:var(--mut)}
 .set input,.set select{width:100%;min-width:0;height:42px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:0 10px;font:inherit;font-size:16px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start}
 .rules{font-size:13px;color:var(--mut);line-height:1.6;margin:0}
 .danger{height:44px;border-radius:8px;border:1px solid var(--red);color:var(--red);font-weight:700}
 .danger.arm{background:var(--red);color:#fff}
@@ -315,6 +316,26 @@ body.noscroll{overflow:hidden}
 details.rulebox{border:1px solid var(--line);border-radius:10px;background:var(--bg);margin:0}
 details.rulebox summary{padding:10px 12px;font-size:14px}
 details.rulebox .rules{padding:0 12px 12px}
+details.adv{border:1px solid var(--line);border-radius:10px;background:var(--paper)}
+details.adv summary{padding:11px 12px;font-size:14px;font-weight:700;cursor:pointer}
+details.adv summary small{display:block;font-weight:400;font-size:12px;color:var(--mut);margin-top:2px}
+details.adv .advin{display:grid;gap:12px;padding:2px 12px 12px}
+.kw{display:block;font-size:12px;color:var(--mut);margin-top:3px;min-height:1em}
+.bar,.bar .sub,.tile{transition:padding .2s}
+body.mini .bar{padding-top:8px;padding-bottom:8px}
+body.mini .bar .sub{display:none}
+body.mini .board{margin-top:6px}
+body.mini .tile{padding:4px 6px 5px}
+.cardmore{display:block;width:100%;margin-top:8px}
+.recent{width:100%;display:flex;align-items:center;gap:12px;margin-top:14px;padding:14px 16px;border-radius:16px;background:var(--paper);border:1px solid var(--line);text-align:left;animation:fadeUp .45s .45s ease-out both}
+.recent .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.recent small{font-size:12px;color:var(--mut)}
+.recent b{font-size:15px}
+.recent .amt{flex:none;font-weight:700;font-size:14px;max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stk .tip.t-r::after{content:'빨'}.stk .tip.t-g::after{content:'초'}
+.stk .tip{color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.4)}
+.slot .mini{display:flex;align-items:center;justify-content:center;font:700 9px/1 sans-serif;color:#fff}
+.slot .mini.t-r::after{content:'빨강'}.slot .mini.t-g::after{content:'초록'}.slot .mini.t-j::after{content:'조커'}
 
 /* ---- 시작 · 모드 선택 · 기록 화면 (게임 화면과 같은 색·글꼴) ---- */
 .cl{max-width:560px;margin:0 auto;padding:0 16px 32px;min-height:100vh;min-height:100dvh}
@@ -822,7 +843,13 @@ document.getElementById('toastUndo').addEventListener('click',()=>{
   save();renderSettings();render();
 });
 
-let fixOpen=false,teeEdit=null;
+let fixOpen=false,teeEdit=null,cardAll=false;
+// 아래로 스크롤하면 상단 점수판을 작게 (들쭉날쭉하지 않게 켜고 끄는 기준을 다르게)
+window.addEventListener('scroll',()=>{
+  const y=window.scrollY,on=document.body.classList.contains('mini');
+  if(!on&&y>140&&ui==='game')document.body.classList.add('mini');
+  else if(on&&(y<60||ui!=='game'))document.body.classList.remove('mini');
+},{passive:true});
 function render(){
   disarm();
   const fx=document.querySelector('details.fix');if(fx)fixOpen=fx.open;
@@ -948,8 +975,10 @@ function render(){
     </div>`;
   }
 
+  const lastHole=Math.max(c,...st.holes.map((x,i)=>confirmed(x)?i:-1));
   const trs=rows.map((R,i)=>{
     const x=st.holes[i];
+    if(!cardAll&&i>lastHole)return '';
     return `<tr class="click ${i===c?'cur':''}" data-act="go" data-i="${i}"><td>${i+1}${isTeam()&&x.pair?`<small class="pr">${esc(N[0].slice(0,1))}${esc(N[x.pair].slice(0,1))}</small>`:''}</td><td>${x.par}</td>
       ${isDraw()?`<td>${R.counted?(R.win<0?'<small>이월</small>':badge(x,R.win)):'-'}</td>`
         :isSkins()?`<td>${R.counted?(R.skinW<0?'<small>이월</small>':`<small>${esc(N[R.skinW])}</small>`):'-'}</td>`:`<td class="num ${R.mult>=2?'m2':''}">${R.mult==null?'-':'×'+R.mult}</td>`}
@@ -1020,7 +1049,8 @@ function render(){
       <tr class="sum"><td>타수</td><td>${parSum}</td><td></td>${ks.map(k=>`<td class="num">${sum(k)||'-'}</td>`).join('')}</tr>
       <tr class="sum"><td>정산</td><td></td><td></td>${ks.map(k=>`<td class="num ${cls(total[k])}">${sgn(total[k]).replace(/원$/,'')}</td>`).join('')}</tr>
     </tbody>
-  </table></div>`;
+  </table></div>
+  ${lastHole<17?`<button class="ghostbtn cardmore" data-act="cardall">${cardAll?'친 홀까지만 보기':`남은 홀도 보기 (${17-lastHole}홀)`}</button>`:''}`;
   if(pendingAnim){pendingAnim=false;showDrawAnim(h,true);}
 }
 
@@ -1136,7 +1166,17 @@ function updPsum(){
   const fb=document.getElementById('fitStakes');if(fb)fb.hidden=d<1;
 }
 // 설정창(시트). 게임 시작 전에도, 라운드 중간에도 연다.
+// 45000 → '4만 5천원'
+function kwon(n){
+  n=Math.round(+n)||0;if(!n)return '0원';
+  const man=Math.floor(n/10000),r=n%10000,p=[];
+  if(man)p.push(man.toLocaleString('ko-KR')+'만');
+  if(r)p.push(r%1000===0?r/1000+'천':r.toLocaleString('ko-KR'));
+  return p.join(' ')+'원';
+}
+let advOpen=false;
 function renderSettings(){
+  const adv0=document.querySelector('#settings details.adv');if(adv0)advOpen=adv0.open;
   const N=st.names,ks=P(),m=M(),pot=usePot();
   const ns=[2,3,4].filter(v=>v>=m.min&&v<=m.max);
   document.getElementById('settings').innerHTML=`
@@ -1181,21 +1221,11 @@ function renderSettings(){
       <div class="fieldinfo"><b>${esc(st.courseName||'코스 이름 없음')}</b><small>파 ${st.holes.reduce((a,h)=>a+h.par,0)} · 홀별 파는 시작 화면의 "코스"나 홀 화면의 Par 버튼에서</small></div>
       <div class="sec-h">벌금</div>
       <div class="two">
-        <label>벌금 방식
-          <select id="fineRule"><option value="all" ${!isOECD()?'selected':''}>모두 냄</option><option value="oecd" ${isOECD()?'selected':''}>OECD 룰</option></select>
-        </label>
-        <label>한 홀 최대 벌금<input id="fineCap" type="number" inputmode="numeric" min="0" step="1000" value="${st.fineCap||''}" placeholder="제한 없음"></label>
-      </div>
-      <div class="two">
         <label>벌금 (1번당)<input id="fine" type="number" inputmode="numeric" min="0" step="1000" value="${st.fine}"></label>
         <label>벌금 내는 곳
           <select id="potMode"><option value="pot" ${fineDest()==='pot'?'selected':''}>공금 (캐디피 등)</option>${pot?`<option value="prize" ${fineDest()==='prize'?'selected':''}>다음 홀 상금</option>`:''}<option value="each" ${fineDest()==='each'?'selected':''}>나머지에게 각각</option></select>
         </label>
       </div>
-      ${isOECD()?(pot
-        ?`<label>OECD 가입 기준 (받은 상금 − 낸 벌금)
-            <select id="oecdPct">${[50,60,70,80,100].map(v=>`<option value="${v}" ${st.oecdPct===v?'selected':''}>낸 판돈의 ${v}% 이상${v===60?' (보통)':v===100?' (본전)':''}</option>`).join('')}</select></label>`
-        :`<label>OECD 가입 기준 (지금까지 딴 돈)<input id="oecdAmt" type="number" inputmode="numeric" min="0" step="1000" value="${st.oecdAmt}"></label>`):''}
       <details class="rulebox"><summary>규칙 자세히 보기</summary>
       <p class="rules">
         ${MODE_RULES[st.mode]()}<br>
@@ -1205,6 +1235,18 @@ function renderSettings(){
           :`OB·벙커·해저드는 1번마다 벌금을 냅니다(배수 없음).`} 같은 홀에서 여러 번이면 버튼을 다시 눌러 횟수를 올립니다.${st.fineCap>0?` 한 홀 벌금은 최대 ${won(st.fineCap)}입니다.`:''}<br>
         버디(이글 포함), 롱기, 니어는 배수와 상관없이 나머지 사람이 각각 보너스 금액을 냅니다.
       </p></details>
+      <details class="adv" ${advOpen?'open':''}><summary>고급 설정<small>${[isOECD()?'OECD 룰 사용 중':'벌금 방식(OECD 룰)',st.fineCap>0?`한 홀 최대 ${won(st.fineCap)}`:'한 홀 최대 벌금','기록 백업'].join(' · ')}</small></summary>
+      <div class="advin">
+      <div class="two">
+        <label>벌금 방식
+          <select id="fineRule"><option value="all" ${!isOECD()?'selected':''}>모두 냄</option><option value="oecd" ${isOECD()?'selected':''}>OECD 룰</option></select>
+        </label>
+        <label>한 홀 최대 벌금<input id="fineCap" type="number" inputmode="numeric" min="0" step="1000" value="${st.fineCap||''}" placeholder="제한 없음"></label>
+      </div>
+      ${isOECD()?(pot
+        ?`<label>OECD 가입 기준 (받은 상금 − 낸 벌금)
+            <select id="oecdPct">${[50,60,70,80,100].map(v=>`<option value="${v}" ${st.oecdPct===v?'selected':''}>낸 판돈의 ${v}% 이상${v===60?' (보통)':v===100?' (본전)':''}</option>`).join('')}</select></label>`
+        :`<label>OECD 가입 기준 (지금까지 딴 돈)<input id="oecdAmt" type="number" inputmode="numeric" min="0" step="1000" value="${st.oecdAmt}"></label>`):''}
       <div class="grp">
         <div class="grph">기록 백업</div>
         <div class="two">
@@ -1213,8 +1255,14 @@ function renderSettings(){
         </div>
         <div class="psum">진행 중 라운드와 저장된 라운드 기록을 파일 하나로 저장합니다. 기록이 지워져도 그대로 복원할 수 있습니다.</div>
         <input type="file" id="importFile" accept=".json,application/json" hidden>
-      </div>`;
+      </div>
+      </div></details>`;
   document.getElementById('importFile').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(f)importRound(f);e.target.value='';});
+  document.querySelectorAll('#settings input[step="1000"]').forEach(el=>{
+    if(/^prize\d/.test(el.id))return;
+    const kw=document.createElement('small');kw.className='kw';el.after(kw);
+    const up=()=>{kw.textContent=el.value===''?'':kwon(el.value);};up();el.addEventListener('input',up);
+  });
 
   const bind=(id,ev,f,blur)=>{
     const el=document.getElementById(id);if(!el)return;
@@ -1289,7 +1337,7 @@ window.addEventListener('popstate',()=>{
   navArm();
 });
 function show(u){
-  ui=u;
+  ui=u;document.body.classList.remove('mini');
   for(const [id,k] of [['scr-home','home'],['scr-modes','modes'],['scr-hist','hist'],['scr-field','field'],['scr-game','game']])document.getElementById(id).hidden=k!==u;
   if(u==='field')renderField();
   if(u==='home')renderHome();
@@ -1349,6 +1397,9 @@ function renderHome(){
     <button class="mbtn" data-act="history"><span class="ic">${ICON.list}</span>
       <span class="tx"><b>라운드 기록</b><small>${hs.length?`저장된 라운드 ${hs.length}개`:'아직 저장된 라운드가 없습니다'}</small></span><span class="chev">${ICON.chev}</span></button>
   </div>
+  ${(()=>{const x=hs[hs.length-1];if(!x)return '';const md=MODES[x.mode]||MODES.stroke,best=Math.max(...x.total),wi=x.total.indexOf(best);
+    return `<button class="recent" data-act="openrec" data-id="${esc(x.id)}"><span class="tx"><small>최근 라운드</small><b>${esc(x.label)}</b><small>${esc(md.name)} · ${x.holesDone}/18홀${x.courseName?` · ${esc(x.courseName)}`:''}</small></span>
+      ${best>0?`<span class="amt pos">1등 ${esc(x.names[wi])} ${sgn(best)}</span>`:''}<span class="chev" style="opacity:.4">${ICON.chev}</span></button>`;})()}
   <div class="homefoot">기록은 이 휴대폰에만 저장됩니다</div>`;
 }
 // 받침에 따라 '로'/'으로' (ㄹ 받침은 '로')
@@ -1568,6 +1619,7 @@ document.addEventListener('click',e=>{
       drawSticks(h);pendingAnim=true;
       if(had)toast(`다시 뽑았습니다`,snap);break;}
     case 'showdraw':showDrawAnim(h,false);return;
+    case 'cardall':cardAll=!cardAll;render();return;
     case 'relive':{const snap=JSON.stringify(st);Object.assign(h,{pair:0,sticks:null,left:null,joker:-1,ls:null});save();render();toast('뽑은 결과를 다시 입력하세요',snap);return;}
     case 'stick':{
       h.ls=h.ls||[null,null,null,null];h.ls[p]=b.dataset.v2;
@@ -1613,7 +1665,7 @@ document.addEventListener('click',e=>{
     case 'home':histSel=null;show('home');return;
     case 'resume':show('game');return;
     case 'history':histSel=null;show('hist');return;
-    case 'openrec':histSel=b.dataset.id;renderHist();window.scrollTo(0,0);return;
+    case 'openrec':histSel=b.dataset.id;if(ui!=='hist')show('hist');else{renderHist();window.scrollTo(0,0);}return;
     case 'histback':histSel=null;renderHist();return;
     case 'copyres':copyResult(makeRecord(true),true);return;
     case 'copyrec':{const rec=loadHist().find(x=>x.id===b.dataset.id);if(rec)copyResult(rec,false);return;}
