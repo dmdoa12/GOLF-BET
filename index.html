@@ -378,6 +378,13 @@ details.rulebox .rules{padding:0 12px 12px}
 .hitem .amt{flex:none;font-size:14px;font-weight:700}
 .empty-note{padding:28px 16px;text-align:center;color:var(--mut);font-size:14px;line-height:1.6;background:var(--paper);border:1px dashed var(--line);border-radius:14px}
 .hsec{margin:18px 0 8px;font-size:15px;font-weight:700}
+.res.pend{color:var(--mut);font-size:13px;line-height:1.45}
+.stbl td:first-child,.stbl th:first-child{text-align:left;padding-left:10px;max-width:70px;overflow:hidden;text-overflow:ellipsis}
+.stbl td.z{color:var(--mut)}
+.hl{margin-top:8px}
+.hl .row span{color:var(--mut);font-size:14px;flex:none}
+.hl .row b{text-align:right}
+.copybtn{display:block;width:100%;margin-top:10px}
 .delbtn{margin-top:20px;width:100%}
 /* ---- 골프장 ---- */
 .fieldcard{width:100%;display:flex;align-items:center;gap:14px;margin-top:30px;padding:14px 16px;border-radius:16px;background:var(--paper);border:1px solid var(--line);text-align:left;animation:fadeUp .45s .2s ease-out both;transition:transform .12s}
@@ -452,9 +459,11 @@ const MODES={
 function holeSub(i){return i<9?`전반 ${i+1}번`:`후반 ${i-8}번`;}
 const fill=v=>Array(MAXP).fill(v);
 const P=()=>[...Array(st.n).keys()];           // 이번 라운드 참가자 인덱스
-function blankHole(par){return{par,s:fill(null),t:fill(false),ob:fill(0),bk:fill(0),hz:fill(0),tp:fill(0),long:-1,near:-1,pair:0,joker:-1,c0:0,sticks:null,left:null}}
+function blankHole(par){return{par,s:fill(null),t:fill(false),ob:fill(0),bk:fill(0),hz:fill(0),tp:fill(0),long:-1,near:-1,pair:0,joker:-1,c0:0,sticks:null,left:null,ok:false}}
 function blank(pars=STD_PARS,courseName=''){return{n:DEF_N,names:[...DEF_NAMES],unit:1000,bonus:5000,fine:2000,potMode:'pot',fineRule:'all',fineCap:0,oecdPct:60,oecdAmt:20000,mode:'stroke',vegasFlip:true,teeOrder:[0,1,2,3],husFirst:-1,husRank:2,hcpN:fill(0),hcpDir:fill(1),hcpUnit:1000,hcpOn:false,drawSrc:'auto',active:false,stakes:fill(45000),prizeMode:'flat',prizeFlat:10000,prizes:Array(18).fill(0),cur:0,courseName,holes:pars.map(blankHole)}}
 const touched=h=>h.t.some(Boolean);
+// 계산에 넣는 홀: 스코어를 직접 넣었거나, 이 홀을 끝내고 다음 홀로 넘어갔을 때 (열어 보기만 한 홀은 제외)
+const confirmed=h=>touched(h)||h.ok===true;
 // 저장본 검증 + 누락 필드 보정 (예전 2인용 저장본이나 깨진 값으로 화면이 죽지 않도록)
 function normalize(raw){
   const d=blank();
@@ -464,6 +473,8 @@ function normalize(raw){
   const arr=(a,f)=>[...Array(MAXP).keys()].map(k=>f(Array.isArray(a)?a[k]:undefined,k));
   const pick=v=>Number.isInteger(v)&&v>=0&&v<MAXP?v:-1;
   const cnt=v=>v===true?1:Number.isInteger(v)&&v>=0&&v<=3?v:0;   // 예전 저장본의 true/false도 받음
+  // 예전 저장본에는 ok가 없다: 지금 보는 홀 앞쪽은 이미 끝낸 홀로 본다
+  const legacyOk=!raw.holes.some(h=>h&&typeof h==='object'&&'ok' in h);
   const holes=raw.holes.map((h,i)=>{
     const b=d.holes[i];if(!h||typeof h!=='object')return b;
     const s=arr(h.s,sc);
@@ -472,7 +483,8 @@ function normalize(raw){
       ob:arr(h.ob,cnt),bk:arr(h.bk,cnt),hz:arr(h.hz,cnt),tp:arr(h.tp,cnt),long:pick(h.long),near:pick(h.near),
       pair:Number.isInteger(h.pair)&&h.pair>=1&&h.pair<=3?h.pair:0,joker:pick(h.joker),c0:h.c0===1?1:0,
       sticks:Array.isArray(h.sticks)&&h.sticks.length===4&&h.sticks.every(x=>['r','g','j'].includes(x))?h.sticks:null,
-      left:['r','g','j'].includes(h.left)?h.left:null};
+      left:['r','g','j'].includes(h.left)?h.left:null,
+      ok:h.ok===true||(legacyOk&&Number.isInteger(raw.cur)&&i<raw.cur)};
   });
   holes.forEach(clampHole);
   const active=typeof raw.active==='boolean'?raw.active:holes.some(touched);
@@ -669,7 +681,7 @@ function compute(){
       h.pair=[1,2,3].find(k=>((vOrd.indexOf(k)===0||vOrd.indexOf(k)===3)?0:1)===((vOrd.indexOf(0)===0||vOrd.indexOf(0)===3)?0:1));
       h.c0=(vOrd.indexOf(0)===0||vOrd.indexOf(0)===3)?0:1;   // 0 = 1·4등 팀
     }
-    const done=ks.every(k=>h.s[k]!=null)&&(!isDraw()||h.pair>0)&&(!isHus()||h.hus>=0);
+    const done=ks.every(k=>h.s[k]!=null)&&confirmed(h)&&(!isDraw()||h.pair>0)&&(!isHus()||h.hus>=0);
     const r={i,mult:broken?null:mult,done,counted:false,half:!done&&ks.some(k=>h.s[k]!=null)};
     if(!done||broken){ if(!done&&!broken){broken=true;firstGap=i;} rows.push(r); return; }
     const sn=ks.map(k=>netS(h,k,i)), S=sn.reduce((a,v)=>a+v,0);
@@ -885,6 +897,8 @@ function render(){
   const seg=(key)=>[-1,...ks].map(v=>`<button class="${h[key]===v?'on':''}" data-act="${key}" data-v="${v}" aria-pressed="${h[key]===v}">${v<0?'없음':esc(N[v])}</button>`).join('');
 
   let res='';
+  if(!r.counted&&firstGap===c&&!confirmed(h)&&(!isTeam()||isVegas()||h.pair)&&(!isHus()||h.hus>=0))
+    res=`<div class="res pend">스코어를 넣으면 이 홀이 계산됩니다. 모두 파면 그대로 다음 홀을 누르세요.</div>`;
   if(r.counted){
     const lines=ks.map(k=>{
       const bonus=r.bir[k]+r.lng[k]+r.nr[k];
@@ -972,6 +986,10 @@ function render(){
       <small class="inl">${usePot()?'상금−벌금':'딴 돈'} ${sgn(oecdHold[k])} / 기준 ${won(oecdThr[k])}</small></span>
       <b class="num">${memberNow[k]?'가입':`${won(Math.max(0,oecdThr[k]-oecdHold[k]))} 남음`}</b></div>`).join('')}
     <div class="empty" style="font-size:12px">가입한 사람만 OB·벙커·해저드·3퍼트·트리플보기 이상에 벌금을 냅니다. 다음 홀부터 적용.</div></div>`:''}
+
+  <h2>라운드 요약</h2>
+  ${statsHtml(N,roundStats(rows))}
+  <button class="ghostbtn copybtn" data-act="copyres">결과 글 복사 (카톡 공유용)</button>
 
   <h2>스코어카드</h2>
   <div class="tbl"><table>
@@ -1233,6 +1251,21 @@ const HKEY='golf-bet-history';
 function loadHist(){try{const v=JSON.parse(localStorage.getItem(HKEY));return Array.isArray(v)?v:[];}catch(e){return [];}}
 function saveHist(v){try{localStorage.setItem(HKEY,JSON.stringify(v));}catch(e){}}
 let ui='home',selMode=null,histSel=null,sheetKind=null;
+// 홈 화면(설정창 없음)이 아닐 때는 방문 기록을 하나 쌓아 두고, 뒤로가기가 오면 앱 안에서 한 단계 뒤로 간다
+let navGuard=false,navSkip=false;
+const atRoot=()=>ui==='home'&&!sheetKind;
+function navArm(){if(!navGuard&&!atRoot()){try{history.pushState({golf:1},'');navGuard=true;}catch(e){}}}
+function navDisarm(){if(navGuard&&atRoot()){navGuard=false;navSkip=true;try{history.back();}catch(e){navSkip=false;}}}
+window.addEventListener('popstate',()=>{
+  if(navSkip){navSkip=false;return;}
+  navGuard=false;
+  const dov=document.querySelector('.dov');
+  if(dov){const ok=dov.querySelector('.dok');if(ok)ok.click();else dov.remove();}
+  else if(sheetKind)closeSheet();
+  else if(ui==='hist'&&histSel){histSel=null;renderHist();}
+  else if(ui!=='home'){histSel=null;show('home');}
+  navArm();
+});
 function show(u){
   ui=u;
   for(const [id,k] of [['scr-home','home'],['scr-modes','modes'],['scr-hist','hist'],['scr-field','field'],['scr-game','game']])document.getElementById(id).hidden=k!==u;
@@ -1242,6 +1275,7 @@ function show(u){
   if(u==='hist')renderHist();
   if(u==='game')render();
   window.scrollTo(0,0);
+  if(u==='home')navDisarm();else navArm();
 }
 // 선 아이콘 (currentColor)
 const ICON={
@@ -1343,6 +1377,8 @@ function renderHist(){
   <div class="hsec">${rec.stakes?'보너스 정산':'정산'}</div>
   <div class="settle">${rec.transfers.length?rec.transfers.map(t=>`<div class="row"><span class="ell">${esc(rec.names[t.from])} → ${esc(rec.names[t.to])}</span><b class="num">${won(t.amt)}</b></div>`).join(''):'<div class="empty">주고받을 돈이 없습니다</div>'}
     ${rec.potBy&&rec.potBy.some(Boolean)?`<div class="row pot"><span>공금 (캐디피 등)</span><b class="num">${won(rec.potBy.reduce((a,b)=>a+b,0))}</b></div>`:''}</div>
+  ${rec.stats?`<div class="hsec">라운드 요약</div>${statsHtml(rec.names,rec.stats)}`:''}
+  <button class="ghostbtn copybtn" data-act="copyrec" data-id="${esc(rec.id)}">결과 글 복사 (카톡 공유용)</button>
   <div class="hsec">스코어카드</div>
   <div class="tbl"><table>
     <thead><tr><th>홀</th><th>Par</th>${rec.names.map(nm=>`<th>${esc(nm)}</th>`).join('')}</tr></thead>
@@ -1387,6 +1423,75 @@ function freshRound(mode){
   st=blank(st.holes.map(h=>h.par),st.courseName);Object.assign(st,keep);
   st.mode=mode;const m=MODES[mode];st.n=Math.min(m.max,Math.max(m.min,st.n));st.active=false;
 }
+// 라운드 요약: 계산된 홀만 센다
+function roundStats(rows){
+  return P().map(k=>{
+    const o={holes:0,strokes:0,par:0,eagle:0,birdie:0,pars:0,bogey:0,dbl:0,ob:0,bk:0,hz:0,long:0,near:0,best:-1,bestAmt:0};
+    st.holes.forEach((h,i)=>{
+      const r=rows[i];if(!r.counted)return;
+      const d=h.s[k]-h.par;
+      o.holes++;o.strokes+=h.s[k];o.par+=h.par;
+      if(d<=-2)o.eagle++;else if(d===-1)o.birdie++;else if(d===0)o.pars++;else if(d===1)o.bogey++;else o.dbl++;
+      o.ob+=h.ob[k];o.bk+=h.bk[k];o.hz+=h.hz[k];
+      if(h.long===k)o.long++;if(h.near===k)o.near++;
+      if(r.net[k]>o.bestAmt){o.bestAmt=Math.round(r.net[k]);o.best=i;}
+    });
+    return o;
+  });
+}
+const toPar=o=>{const d=o.strokes-o.par;return d>0?'+'+d:d<0?String(d):'E';};
+function statsHtml(names,S){
+  if(!S||!S.some(o=>o.holes))return '<div class="settle"><div class="empty">아직 계산된 홀이 없습니다</div></div>';
+  const z=v=>`<td class="num ${v?'':'z'}">${v}</td>`;
+  const low=Math.min(...S.map(o=>o.strokes)),lw=S.map((o,k)=>o.strokes===low?k:-1).filter(k=>k>=0);
+  const big=S.reduce((a,o,k)=>o.bestAmt>(a?a.amt:0)?{k,i:o.best,amt:o.bestAmt}:a,null);
+  const mb=Math.max(...S.map(o=>o.eagle+o.birdie));
+  return `<div class="tbl"><table class="stbl">
+    <thead><tr><th></th><th>타수</th><th>버디↓</th><th>파</th><th>보기</th><th>더블+</th><th>벌칙</th></tr></thead>
+    <tbody>${S.map((o,k)=>`<tr><td>${esc(names[k])}</td><td class="num"><b>${o.strokes}</b><small>${toPar(o)}</small></td>${z(o.eagle+o.birdie)}${z(o.pars)}${z(o.bogey)}${z(o.dbl)}${z(o.ob+o.bk+o.hz)}</tr>`).join('')}</tbody>
+  </table></div>
+  <div class="settle hl">
+    <div class="row"><span>최저타</span><b>${lw.map(k=>esc(names[k])).join('·')} ${low}타 (${toPar(S[lw[0]])})</b></div>
+    ${mb?`<div class="row"><span>버디 최다</span><b>${S.map((o,k)=>o.eagle+o.birdie===mb?esc(names[k]):'').filter(Boolean).join('·')} ${mb}개</b></div>`:''}
+    ${S.some(o=>o.long||o.near)?`<div class="row"><span>롱기 · 니어</span><b>${S.map((o,k)=>o.long||o.near?`${esc(names[k])} ${o.long}·${o.near}`:'').filter(Boolean).join(', ')}</b></div>`:''}
+    ${S.some(o=>o.ob+o.bk+o.hz)?`<div class="row"><span>벌칙 (OB·벙커·해저드)</span><b>${S.map((o,k)=>o.ob+o.bk+o.hz?`${esc(names[k])} ${o.ob}·${o.bk}·${o.hz}`:'').filter(Boolean).join(', ')}</b></div>`:''}
+    ${big?`<div class="row"><span>한 홀 최고</span><b>${esc(names[big.k])} ${big.i+1}번 홀 ${sgn(big.amt)}</b></div>`:''}
+  </div>`;
+}
+// 카톡 등에 붙여넣을 결과 글
+function resultText(rec,live){
+  const md=MODES[rec.mode]||MODES.stroke,cname=rec.courseName||LEGACY_NAME[rec.course]||'',N=rec.names;
+  const L=[`[GOLF BET] ${rec.date} ${md.name}`];
+  L.push([cname,`${rec.holesDone}/18홀${live&&rec.holesDone<18?' 진행 중':''}`].filter(Boolean).join(' · '));
+  L.push('','■ 최종 결과');
+  N.forEach((nm,k)=>L.push(`${nm} ${sgn(rec.total[k])}${rec.stakes?` (판돈 ${won(rec.stakes[k])} · 상금 ${won(rec.prizeTot[k])})`:''}`));
+  L.push('',rec.stakes?'■ 보너스·벌금 송금':'■ 송금');
+  if(rec.transfers.length)rec.transfers.forEach(t=>L.push(`${N[t.from]} → ${N[t.to]} ${won(t.amt)}`));else L.push('주고받을 돈 없음');
+  const pot=(rec.potBy||[]).reduce((a,b)=>a+b,0);
+  if(pot)L.push(`공금(캐디피 등) ${won(pot)}: `+N.map((nm,k)=>rec.potBy[k]?`${nm} ${won(rec.potBy[k])}`:'').filter(Boolean).join(', '));
+  if(rec.stats&&rec.stats.some(o=>o.holes)){
+    L.push('','■ 요약');
+    rec.stats.forEach((o,k)=>{
+      const x=[`${o.strokes}타(${toPar(o)})`];
+      if(o.eagle)x.push(`이글${o.eagle}`);if(o.birdie)x.push(`버디${o.birdie}`);
+      if(o.pars)x.push(`파${o.pars}`);if(o.bogey)x.push(`보기${o.bogey}`);if(o.dbl)x.push(`더블+${o.dbl}`);
+      if(o.ob)x.push(`OB${o.ob}`);if(o.bk)x.push(`벙커${o.bk}`);if(o.hz)x.push(`해저드${o.hz}`);
+      if(o.long)x.push(`롱기${o.long}`);if(o.near)x.push(`니어${o.near}`);
+      L.push(`${N[k]} ${x.join(' ')}`);
+    });
+  }
+  return L.join('\n');
+}
+async function copyText(t){
+  try{await navigator.clipboard.writeText(t);return true;}catch(e){}
+  try{const ta=document.createElement('textarea');ta.value=t;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();return ok;}catch(e){return false;}
+}
+async function copyResult(rec,live){
+  const t=resultText(rec,live);
+  if(await copyText(t))toast('결과를 복사했습니다. 카톡 등에 붙여넣으세요',null);
+  else{try{if(navigator.share){await navigator.share({text:t});return;}}catch(e){if(e&&e.name==='AbortError')return;}toast('복사가 안 되는 환경입니다',null);}
+}
 function makeRecord(){
   const {rows,total,potBy,prizeTot,sideTot}=compute();
   const n=st.n,pot=usePot(),d=new Date(),p2=x=>String(x).padStart(2,'0');
@@ -1397,6 +1502,7 @@ function makeRecord(){
     mode:st.mode,courseName:st.courseName,n,names:st.names.slice(0,n),holesDone:rows.filter(x=>x.counted).length,
     total:total.map(Math.round),potBy:potBy.map(Math.round),prizeTot:prizeTot.map(Math.round),stakes:pot?st.stakes.slice(0,n):null,
     transfers:tf.map(t=>({from:t.from,to:t.to,amt:Math.round(t.amt)})),
+    stats:roundStats(rows),
     pars:st.holes.map(h=>h.par),scores:st.holes.map(h=>h.s.slice(0,n).map((v,k)=>h.t[k]||rows[st.holes.indexOf(h)].counted?v:null))};
 }
 function openSheet(kind){
@@ -1408,6 +1514,7 @@ function openSheet(kind){
   renderSettings();
   document.getElementById('sheet').hidden=false;
   document.body.classList.add('noscroll');
+  navArm();
   document.querySelector('#sheet .set').scrollTop=0;
 }
 function closeSheet(){
@@ -1421,8 +1528,9 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');
   if(!b){if(armed)disarm();return;}
   const a=b.dataset.act,h=st.holes[st.cur],p=+b.dataset.p,v=+b.dataset.v;
+  if(['s','par','ob','bk','hz','tp','long','near','pair','joker','c0','draw'].includes(a))h.ok=true;
   switch(a){
-    case 'go':{const i=+b.dataset.i;if(!(i>=0&&i<=17))return;st.cur=i;save();render();
+    case 'go':{const i=+b.dataset.i;if(!(i>=0&&i<=17))return;if(i>st.cur&&h.s.slice(0,st.n).every(x=>x!=null))h.ok=true;st.cur=i;save();render();
       if(b.tagName==='TR'||b.closest('.mult')||b.closest('.nav'))window.scrollTo({top:0,behavior:'smooth'});return;}
     case 's':try{navigator.vibrate&&navigator.vibrate(8);}catch(_){}h.s[p]=h.s[p]==null?h.par+v:Math.max(1,Math.min(maxS(h),h.s[p]+v));h.t[p]=true;break;
     case 'par':h.s[p]=h.par;h.t[p]=true;break;
@@ -1441,7 +1549,7 @@ document.addEventListener('click',e=>{
     case 'stick':{
       h.ls=h.ls||[null,null,null,null];h.ls[p]=b.dataset.v2;
       if(sticksValid(h.ls.slice(0,4))){const used=[...h.ls];const pool=['r','r','g','g','j'];used.forEach(t=>{const x=pool.indexOf(t);if(x>=0)pool.splice(x,1);});
-        applySticks(h,used.slice(0,4),isDraw()?pool[0]||null:null);save();render();toast('편이 정해졌습니다',null);return;}
+        applySticks(h,used.slice(0,4),isDraw()?pool[0]||null:null);h.ok=true;save();render();toast('편이 정해졌습니다',null);return;}
       break;}
     case 'husset':st.husFirst=p;break;
     case 'husclear':st.husFirst=-1;break;
@@ -1484,11 +1592,13 @@ document.addEventListener('click',e=>{
     case 'history':histSel=null;show('hist');return;
     case 'openrec':histSel=b.dataset.id;renderHist();window.scrollTo(0,0);return;
     case 'histback':histSel=null;renderHist();return;
+    case 'copyres':copyResult(makeRecord(),true);return;
+    case 'copyrec':{const rec=loadHist().find(x=>x.id===b.dataset.id);if(rec)copyResult(rec,false);return;}
     case 'delrec':{
       if(!armOrRun(b,'delrec','한 번 더 누르면 삭제'))return;
       saveHist(loadHist().filter(x=>x.id!==b.dataset.id));histSel=null;renderHist();toast('기록을 삭제했습니다',null);return;}
     case 'newgame':
-      if(st.active&&!armOrRun(b,'newgame','진행 중 라운드가 지워집니다 · 한 번 더'))return;
+      if(st.active&&!armOrRun(b,'newgame','진행 중 라운드는 기록에 저장 · 한 번 더'))return;
       selMode=null;show('modes');return;
     case 'pickmode':{
       selMode=b.dataset.m;
@@ -1498,13 +1608,20 @@ document.addEventListener('click',e=>{
         const go=c.querySelector('.go');if(on)go.removeAttribute('tabindex');else go.setAttribute('tabindex','-1');
       });
       const card=b.closest('.mcard');setTimeout(()=>card.scrollIntoView({behavior:'smooth',block:'nearest'}),320);return;}
-    case 'startmode':freshRound(selMode||'stroke');save();openSheet('setup');return;
+    case 'startmode':{
+      // 진행 중이던 라운드는 지우기 전에 라운드 기록에 남긴다
+      let kept=null;
+      if(st.active){const rec=makeRecord();if(rec.holesDone>0){const hs=loadHist();hs.push(rec);saveHist(hs);kept=rec.label;}}
+      freshRound(selMode||'stroke');save();openSheet('setup');
+      if(kept)toast(`하던 라운드를 ${kept} 기록으로 저장했습니다`,null);
+      return;}
     case 'startgame':
       st.active=true;st.cur=0;save();
       document.getElementById('sheet').hidden=true;document.body.classList.remove('noscroll');sheetKind=null;
       show('game');toast(`${M().name} 시작! 1번 홀`,null);return;
     case 'endround':{
       if(!armOrRun(b,'endround','한 번 더 누르면 종료하고 기록 저장'))return;
+      if(compute().firstGap===st.cur&&h.s.slice(0,st.n).every(x=>x!=null))h.ok=true;
       const rec=makeRecord();
       if(rec.holesDone>0){const hs=loadHist();hs.push(rec);saveHist(hs);}
       freshRound(st.mode);save();show('home');
