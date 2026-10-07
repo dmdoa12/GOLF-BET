@@ -40,7 +40,7 @@
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*::before,*::after{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans KR",-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans KR",-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent;word-break:keep-all;overflow-wrap:break-word}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;touch-action:manipulation}
 button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .num{font-variant-numeric:tabular-nums}
@@ -53,7 +53,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .bar .savest{margin-left:auto;font-size:11px;opacity:.8;white-space:nowrap}
 .board{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:6px;margin-top:8px}
 .tile{background:rgba(255,255,255,.1);border-radius:9px;padding:6px 6px 7px;min-width:0}
-.tile .nm{font-size:12px;opacity:.85}
+.tile .nm{font-size:12px;opacity:.85;display:flex;align-items:center}
+.tile .nm .nmt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tile .v{font-size:17px;font-weight:700;letter-spacing:-.02em;line-height:1.25}
 .tile .v.up{color:#a9e8c2} .tile .v.dn{color:#ffb7a8}
 .tile .v{white-space:nowrap}
@@ -61,11 +62,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .board.n4 .tile .v i{display:none}
 .tile .v i{font-style:normal;font-size:11px;font-weight:500;opacity:.8;margin-left:1px}
 .tile.lead{background:rgba(255,255,255,.2)}
-.bar .sub{font-size:12px;opacity:.75;margin-top:8px;padding:0 2px}
+.bar .sub{font-size:12px;opacity:.75;margin-top:8px;padding:0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* hole chips */
-.chips{display:grid;grid-template-columns:repeat(9,1fr);gap:5px;margin:14px 0 12px}
-.chip{position:relative;height:38px;border-radius:8px;background:var(--paper);border:1px solid var(--line);font-weight:500;font-size:15px}
+.chips{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:5px;margin:14px 0 12px}
+.chip{position:relative;min-width:0;padding:0;height:38px;border-radius:8px;background:var(--paper);border:1px solid var(--line);font-weight:500;font-size:15px}
 .chip.done{background:var(--green2);border-color:transparent}
 .chip.half{border-color:var(--flag);border-style:dashed}
 .chip.cur{outline:2px solid var(--green);outline-offset:-2px}
@@ -88,12 +89,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .pls{margin-top:12px}
 .pl{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
 .pinfo{flex:1;min-width:0}
-.pname{font-weight:700;font-size:16px}
+.pname{font-weight:700;font-size:16px;display:flex;flex-wrap:wrap;align-items:center;row-gap:2px}
+.pname .nmlink{min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:5px}
 .step{display:flex;align-items:center;gap:4px;flex:none}
 .step button.pm{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);font-size:22px;line-height:1}
 .step button.pm:active{background:var(--green2)}
 .step button.pm:disabled{opacity:.3;cursor:default}
-.val{min-width:60px;text-align:center;border-radius:10px;padding:0 2px}
+.val{width:66px;text-align:center;border-radius:10px;padding:0 2px}
 .val b{display:block;font-size:28px;line-height:1.1}
 .val small{display:block;font-size:11px;color:var(--mut);white-space:nowrap}
 .val.bir small{color:var(--blue);font-weight:700}
@@ -101,6 +103,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .tags{display:flex;gap:3px;margin-top:5px;flex-wrap:wrap}
 .tag{height:28px;padding:0 6px;border-radius:14px;border:1px solid var(--line);font-size:12px;color:var(--mut)}
 .tag .cnt{font-size:10px;margin-left:1px;vertical-align:1px}
+.bonus .seg button{font-size:12px;padding:0 2px;text-overflow:clip}
+@media (max-width:359px){
+  .step button.pm{width:38px;height:38px}
+  .val{width:58px}.val b{font-size:26px}
+  .tag{padding:0 5px;font-size:11.5px}
+  .pl{gap:6px}
+}
 .tag.on{background:var(--redbg);border-color:var(--red);color:var(--red);font-weight:700}
 
 .teams{margin-top:12px;display:grid;gap:8px}
@@ -125,6 +134,7 @@ details.fix[open]{display:grid;gap:8px}
 .redraw{margin-left:auto;height:32px;padding:0 12px;border-radius:16px;background:var(--green);color:#fff;font-size:13px;font-weight:700}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .redraw{color:#0f1512}}
 :root[data-theme="dark"] .redraw{color:#0f1512}
+.redraw.ghost,:root .redraw.ghost{color:var(--green)}
 .tm{display:inline-block;font-style:normal;font-size:11px;font-weight:700;line-height:18px;padding:0 5px;border-radius:5px;margin-right:5px;vertical-align:2px}
 .tm.tr{background:var(--redbg);color:var(--red)}
 .tm.tg{background:var(--green2);color:var(--green)}
@@ -148,7 +158,7 @@ details.fix[open]{display:grid;gap:8px}
 .hrow2 small{font-size:13px;color:var(--mut)}
 .tm.rk{background:var(--bg);color:var(--mut);border:1px solid var(--line);margin-right:5px}
 .tm.oe{background:#2b3f8f;color:#fff;margin-left:5px;margin-right:0;font-size:10px}
-.tile .oecd{font-size:9px;font-weight:700;background:#fff;color:#1b4a33;border-radius:4px;padding:0 3px;margin-left:4px;vertical-align:1px}
+.tile .oecd{flex:none;font-size:9px;font-weight:700;background:#fff;color:#1b4a33;border-radius:4px;padding:0 3px;margin-left:4px;vertical-align:1px}
 .tm.jk{background:var(--ink);color:var(--paper);margin-left:5px;margin-right:0}
 .nmlink{cursor:pointer}
 .namehint{display:block;width:100%;margin:12px 0 0;padding:10px 12px;border-radius:10px;border:1px dashed var(--green);color:var(--green);font-size:14px;font-weight:700;background:var(--paper)}
@@ -345,10 +355,10 @@ details.rulebox .rules{padding:0 12px 12px}
 .mbtn.arm{background:var(--red);border-color:var(--red);color:#fff}
 .mbtn.arm .ic{background:rgba(255,255,255,.18);color:#fff}
 .homefoot{margin-top:28px;text-align:center;font-size:12px;color:var(--mut)}
-.mlist{display:grid;gap:10px}
+.mlist{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
 .mcard{width:100%;display:block;text-align:left;padding:0;border-radius:16px;background:var(--paper);border:1.5px solid var(--line);overflow:hidden;transition:border-color .2s,opacity .25s,box-shadow .25s;animation:fadeUp .35s ease-out both}
 .mlist .mcard:nth-child(2){animation-delay:.05s}.mlist .mcard:nth-child(3){animation-delay:.1s}.mlist .mcard:nth-child(4){animation-delay:.15s}
-.mlist.has .mcard:not(.on){opacity:.55}
+.mlist.has .mcard:not(.on){opacity:.7}
 .mcard.on{border-color:var(--green);box-shadow:0 6px 20px rgba(27,74,51,.14)}
 .mcard .row1{display:flex;align-items:center;gap:14px;padding:14px 16px}
 .mcard .ic{flex:none;width:44px;height:44px;border-radius:12px;background:var(--green2);color:var(--green);display:flex;align-items:center;justify-content:center;transition:background-color .2s,color .2s}
@@ -375,7 +385,7 @@ details.rulebox .rules{padding:0 12px 12px}
 .hitem .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
 .hitem b{font-size:16px}
 .hitem small{font-size:13px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hitem .amt{flex:none;font-size:14px;font-weight:700}
+.hitem .amt{flex:none;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:700}
 .empty-note{padding:28px 16px;text-align:center;color:var(--mut);font-size:14px;line-height:1.6;background:var(--paper);border:1px dashed var(--line);border-radius:14px}
 .hsec{margin:18px 0 8px;font-size:15px;font-weight:700}
 .res.pend{color:var(--mut);font-size:13px;line-height:1.45}
@@ -803,7 +813,7 @@ function toast(msg,snap){
   document.getElementById('toastUndo').hidden=!snap;
   document.getElementById('toastMsg').textContent=msg;
   const t=document.getElementById('toast');t.hidden=false;
-  clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.hidden=true;undoSnap=null;},6000);
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.hidden=true;undoSnap=null;},snap?6000:2500);
 }
 document.getElementById('toastUndo').addEventListener('click',()=>{
   if(!undoSnap)return;
@@ -824,7 +834,7 @@ function render(){
   const best=Math.max(...total);
 
   const tiles=ks.map(k=>`<div class="tile ${doneCnt&&total[k]===best&&best>0?'lead':''}" data-act="rename" data-p="${k}" role="button" aria-label="${esc(N[k])} 이름 바꾸기">
-      <div class="nm ell">${esc(N[k])}${memberNow[k]?'<b class="oecd">OECD</b>':''}</div>
+      <div class="nm"><span class="nmt">${esc(N[k])}</span>${memberNow[k]?'<b class="oecd">OECD</b>':''}</div>
       <div class="v num ${total[k]>0?'up':total[k]<0?'dn':''}">${sgn(total[k]).replace(/원$/,'')}<i>원</i></div></div>`).join('');
 
   const chips=st.holes.map((x,i)=>{
@@ -875,7 +885,7 @@ function render(){
     </div>`;
   const teamBox=isHus()?husBox:isVegas()?vegasBox:isTeam()?`<div class="teams">
       ${h.pair?`<div class="vs"><span>${badge(h,0)}${esc(teamNames(h,0))}</span><b>vs</b><span>${badge(h,1)}${esc(teamNames(h,1))}</span>
-        <button class="redraw ghost" data-act="showdraw">뽑기 다시 보기</button></div>`
+        ${st.drawSrc==='live'?'<button class="redraw ghost" data-act="relive">다시 입력</button>':'<button class="redraw ghost" data-act="showdraw">뽑기 다시 보기</button>'}</div>`
       :st.drawSrc==='live'?liveStickBox(h)
       :`<button class="drawbig" data-act="draw">스코어 입력 끝 · 뽑기!</button>
         <div class="drawhint">편은 홀이 끝난 뒤에 뽑습니다. 스코어를 다 넣고 누르세요.</div>`}
@@ -899,7 +909,7 @@ function render(){
       </div>
       <div class="step">
         <button class="pm" data-act="s" data-p="${k}" data-v="-1" aria-label="${esc(N[k])} 한 타 줄이기">−</button>
-        <button class="val ${vc}" data-act="par" data-p="${k}" aria-label="${esc(N[k])} 스코어 ${s}타${h.t[k]?'':' (기본값)'}, 누르면 파로 확정"><b class="num">${s==null?h.par:s}</b><small>${isDraw()&&h.joker===k?`조커 → 보기(${h.par+1})`:label(s,h.par,!h.t[k])}</small></button>
+        <button class="val ${vc}" data-act="par" data-p="${k}" aria-label="${esc(N[k])} 스코어 ${s}타${h.t[k]?'':' (기본값)'}, 누르면 파로 확정"><b class="num">${s==null?h.par:s}</b><small>${isDraw()&&h.joker===k?`조커(보기 ${h.par+1})`:label(s,h.par,!h.t[k])}</small></button>
         <button class="pm" data-act="s" data-p="${k}" data-v="1" aria-label="${esc(N[k])} 한 타 늘리기" ${s!=null&&s>=maxS(h)?'disabled':''}>+</button>
       </div>
     </div>`;
@@ -951,7 +961,7 @@ function render(){
   // 공금 벌금은 사람끼리 주고받는 돈이 아니므로 송금 계산에서 빼고 따로 보여준다
   const tf=transfers(usePot()?sideTot:total.map((v,k)=>v+potBy[k]));
   const pd=prizeSum()-potTotal();
-  const prizeRows=usePot()?`<div class="row sec"><span>판돈 상금 <small>판돈 합계 ${won(potTotal())} · 홀 상금 ${st.prizeMode==='manual'?'홀마다 직접 설정':`홀당 ${won(prizeOf(0))}`}${pd>=1?` · 상금 합계가 판돈보다 ${won(pd)} 많음`:''}${carry?` · 이월 중 ${won(carry)}`:''}${!potFinal&&potLeft>=1?` · 남은 판돈 ${won(potLeft)} (끝나고 남으면 공금)`:''}</small></span></div>
+  const prizeRows=usePot()?`<div class="row sec"><span>판돈 상금 <small>판돈 합계 ${won(potTotal())} · 홀 상금 ${st.prizeMode==='manual'?'홀마다 직접 설정':`홀당 ${won(prizeOf(0))}`}${pd>=1?` · 상금 합계가 판돈보다 ${won(pd)} 많음`:''}${carry?` · 이월 중 ${won(carry)}`:''}${!potFinal&&-pd>=1?` · 상금으로 안 쓰는 ${won(-pd)}은 끝나고 공금`:''}</small></span></div>
     ${ks.map(k=>`<div class="row"><span class="ell">${esc(N[k])} <small class="inl">판돈 ${won(st.stakes[k])}</small></span><b class="num">상금 ${won(prizeTot[k])}</b></div>`).join('')}
     <div class="row sec"><span>보너스${st.potMode==='each'?'·벌금':''}${hasHcp()?'·핸디':''} 정산 <small>사람끼리 주고받을 돈</small></span></div>`:'';
   const settle=prizeRows+(tf.length
@@ -1179,7 +1189,7 @@ function renderSettings(){
       <div class="two">
         <label>벌금 (1번당)<input id="fine" type="number" inputmode="numeric" min="0" step="1000" value="${st.fine}"></label>
         <label>벌금 내는 곳
-          <select id="potMode"><option value="pot" ${fineDest()==='pot'?'selected':''}>공금 적립 (캐디피 등)</option>${pot?`<option value="prize" ${fineDest()==='prize'?'selected':''}>판돈 (다음 홀 상금에 보탬)</option>`:''}<option value="each" ${fineDest()==='each'?'selected':''}>나머지에게 각각</option></select>
+          <select id="potMode"><option value="pot" ${fineDest()==='pot'?'selected':''}>공금 (캐디피 등)</option>${pot?`<option value="prize" ${fineDest()==='prize'?'selected':''}>다음 홀 상금</option>`:''}<option value="each" ${fineDest()==='each'?'selected':''}>나머지에게 각각</option></select>
         </label>
       </div>
       ${isOECD()?(pot
@@ -1459,7 +1469,7 @@ function statsHtml(names,S){
   const big=S.reduce((a,o,k)=>o.bestAmt>(a?a.amt:0)?{k,i:o.best,amt:o.bestAmt}:a,null);
   const mb=Math.max(...S.map(o=>o.eagle+o.birdie));
   return `<div class="tbl"><table class="stbl">
-    <thead><tr><th></th><th>타수</th><th>버디↓</th><th>파</th><th>보기</th><th>더블+</th><th>벌칙</th></tr></thead>
+    <thead><tr><th></th><th>타수</th><th>버디</th><th>파</th><th>보기</th><th>더블+</th><th>벌칙</th></tr></thead>
     <tbody>${S.map((o,k)=>`<tr><td>${esc(names[k])}</td><td class="num"><b>${o.strokes}</b><small>${toPar(o)}</small></td>${z(o.eagle+o.birdie)}${z(o.pars)}${z(o.bogey)}${z(o.dbl)}${z(o.ob+o.bk+o.hz)}</tr>`).join('')}</tbody>
   </table></div>
   <div class="settle hl">
@@ -1558,6 +1568,7 @@ document.addEventListener('click',e=>{
       drawSticks(h);pendingAnim=true;
       if(had)toast(`다시 뽑았습니다`,snap);break;}
     case 'showdraw':showDrawAnim(h,false);return;
+    case 'relive':{const snap=JSON.stringify(st);Object.assign(h,{pair:0,sticks:null,left:null,joker:-1,ls:null});save();render();toast('뽑은 결과를 다시 입력하세요',snap);return;}
     case 'stick':{
       h.ls=h.ls||[null,null,null,null];h.ls[p]=b.dataset.v2;
       if(sticksValid(h.ls.slice(0,4))){const used=[...h.ls];const pool=['r','r','g','g','j'];used.forEach(t=>{const x=pool.indexOf(t);if(x>=0)pool.splice(x,1);});
