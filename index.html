@@ -467,7 +467,7 @@ function normalize(raw){
   const holes=raw.holes.map((h,i)=>{
     const b=d.holes[i];if(!h||typeof h!=='object')return b;
     const s=arr(h.s,sc);
-    return{par:[3,4,5].includes(h.par)?h.par:b.par,s,
+    return{par:[3,4,5,6].includes(h.par)?h.par:b.par,s,
       t:arr(h.t,(v,k)=>Array.isArray(h.t)?!!v:s[k]!=null),
       ob:arr(h.ob,cnt),bk:arr(h.bk,cnt),hz:arr(h.hz,cnt),tp:arr(h.tp,cnt),long:pick(h.long),near:pick(h.near),
       pair:Number.isInteger(h.pair)&&h.pair>=1&&h.pair<=3?h.pair:0,joker:pick(h.joker),c0:h.c0===1?1:0,
@@ -946,7 +946,7 @@ function render(){
   <div class="card">
     <div class="hhead">
       <div class="hno">${c+1}번 홀${holeSub(c)?`<small>${esc(holeSub(c))}</small>`:''}</div>
-      <div class="pars">${[3,4,5].map(p=>`<button class="${h.par===p?'on':''}" data-act="setpar" data-v="${p}" aria-pressed="${h.par===p}">Par ${p}</button>`).join('')}</div>
+      <div class="pars">${(h.par===6?[3,4,5,6]:[3,4,5]).map(p=>`<button class="${h.par===p?'on':''}" data-act="setpar" data-v="${p}" aria-pressed="${h.par===p}">Par ${p}</button>`).join('')}</div>
     </div>
     <div class="mult ${multCls}">${multTxt}</div>
     <div class="pls">${pl}</div>
@@ -1337,7 +1337,7 @@ function renderHist(){
   const md=MODES[rec.mode]||MODES.stroke,cname=rec.courseName||LEGACY_NAME[rec.course]||'';
   el.innerHTML=`
   <div class="cl-h"><button class="back" data-act="histback" aria-label="목록으로">${ICON.back}</button><h1>${esc(rec.label)}</h1></div>
-  <div class="cl-sub">${esc(md.name)} · ${esc(cname)} · ${rec.holesDone}/18홀</div>
+  <div class="cl-sub">${esc(md.name)}${cname?` · ${esc(cname)}`:''} · ${rec.holesDone}/18홀</div>
   <div class="hsec">최종 결과</div>
   <div class="settle">${rec.names.map((nm,k)=>`<div class="row"><span class="ell">${esc(nm)}${rec.stakes?` <small class="inl">판돈 ${won(rec.stakes[k])} · 상금 ${won(rec.prizeTot[k])}</small>`:''}</span><b class="num ${cls(rec.total[k])}">${sgn(rec.total[k])}</b></div>`).join('')}</div>
   <div class="hsec">${rec.stakes?'보너스 정산':'정산'}</div>
@@ -1514,7 +1514,7 @@ document.addEventListener('click',e=>{
       const empty=!touched(h)&&!h.ob.some(Boolean)&&!h.bk.some(Boolean)&&!h.hz.some(Boolean)&&!h.tp.some(Boolean)&&h.long<0&&h.near<0;
       if(empty)return;
       const snap=JSON.stringify(st);
-      Object.assign(h,blankHole(h.par),{pair:h.pair,joker:h.joker});
+      Object.assign(h,blankHole(h.par),{pair:h.pair,joker:h.joker,c0:h.c0,sticks:h.sticks,left:h.left});
       toast(`${st.cur+1}번 홀을 기본값으로 되돌렸습니다`,snap);break;}
     default:return;
   }
