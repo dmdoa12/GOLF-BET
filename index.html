@@ -506,6 +506,7 @@ body.mini .tile{padding:4px 6px 5px}
 .pk-o.bir b,.pk-o.bir small{color:var(--blue)}
 .pk-o.dbl b,.pk-o.dbl small{color:var(--red)}
 .pk-o.on{border-color:var(--green);background:var(--green2)}
+.pk-o.max:nth-child(7){grid-column:1/-1;height:58px;flex-direction:row;gap:8px}   /* 파4·5: 일곱 번째 더블파는 한 줄 전체 */
 
 /* ---- 스코어카드 표기 (실제 스코어카드처럼) ---- */
 .sc{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 2px;line-height:1;border-radius:4px}
@@ -571,7 +572,7 @@ td .sc + small{margin-top:2px}
 <div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button id="toastUndo" type="button">되돌리기</button></div>
 <script>
 const KEY='golf-bet-v1';
-const APP_VER='24';   // sw.js의 VERSION 숫자와 같게 올린다 (홈 화면 아래에 표시)
+const APP_VER='25';   // sw.js의 VERSION 숫자와 같게 올린다 (홈 화면 아래에 표시)
 const MAXP=4, DEF_N=4, DEF_NAMES=['A','B','C','D'];
 // 화면 테마: 이 휴대폰에만 기억 (자동 = 휴대폰 설정 따라감)
 const TKEY='golf-bet-theme';
@@ -1024,12 +1025,12 @@ function openPicker(p){
   const h=st.holes[st.cur];if(!(p>=0&&p<st.n))return;
   pickP=p;
   const mx=maxS(h),cur=h.s[p];
-  const opts=[[-1,'버디'],[0,'파'],[1,'보기'],[2,'더블'],[3,'트리플'],['max','더블파']]
+  const opts=[[-2,h.par===3?'홀인원':'이글'],[-1,'버디'],[0,'파'],[1,'보기'],[2,'더블'],[3,'트리플'],['max','더블파']]
     .filter(([d])=>d==='max'||h.par+d<mx);   // 파3은 트리플 = 더블파라 하나로
   document.getElementById('pkTitle').textContent=`${st.names[p]} · ${st.cur+1}번 홀 (파 ${h.par})`;
   document.getElementById('pkGrid').innerHTML=opts.map(([d,nm])=>{
     const val=d==='max'?mx:h.par+d,c=val<h.par?'bir':val>=h.par+2?'dbl':'';
-    return `<button type="button" class="pk-o ${c} ${cur===val?'on':''}" data-act="pickv" data-p="${p}" data-v2="${d}" aria-pressed="${cur===val}"><b class="num">${val}</b><small>${nm}${d==='max'?' (양파)':''}</small></button>`;
+    return `<button type="button" class="pk-o ${c} ${d==='max'?'max':''} ${cur===val?'on':''}" data-act="pickv" data-p="${p}" data-v2="${d}" aria-pressed="${cur===val}"><b class="num">${val}</b><small>${nm}${d==='max'?' (양파)':''}</small></button>`;
   }).join('');
   document.getElementById('picker').hidden=false;
   document.body.classList.add('noscroll');
