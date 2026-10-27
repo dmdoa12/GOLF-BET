@@ -474,6 +474,7 @@ body.mini .tile{padding:4px 6px 5px}
 <div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button id="toastUndo" type="button">되돌리기</button></div>
 <script>
 const KEY='golf-bet-v1';
+const APP_VER='23';   // sw.js의 VERSION 숫자와 같게 올린다 (홈 화면 아래에 표시)
 const MAXP=4, DEF_N=4, DEF_NAMES=['A','B','C','D'];
 // 코스: 골프장 데이터 없이 사용자가 홀별 파를 직접 넣는다. 코스 이름과 파는 다음 라운드에도 이어 쓴다.
 const STD_PARS=[4,4,3,4,5,4,3,4,5, 4,3,4,5,4,4,3,5,4];
@@ -1418,7 +1419,7 @@ function renderHome(){
   ${(()=>{const x=hs[hs.length-1];if(!x)return '';const md=MODES[x.mode]||MODES.stroke,best=Math.max(...x.total),wi=x.total.indexOf(best);
     return `<button class="recent" data-act="openrec" data-id="${esc(x.id)}"><span class="tx"><small>최근 라운드</small><b>${esc(x.label)}</b><small>${esc(md.name)} · ${x.holesDone}/18홀${x.courseName?` · ${esc(x.courseName)}`:''}</small></span>
       ${best>0?`<span class="amt pos">1등 ${esc(x.names[wi])} ${sgn(best)}</span>`:''}<span class="chev" style="opacity:.4">${ICON.chev}</span></button>`;})()}
-  <div class="homefoot">기록은 이 휴대폰에만 저장됩니다</div>`;
+  <div class="homefoot">기록은 이 휴대폰에만 저장됩니다 · 버전 ${APP_VER}</div>`;
 }
 // 받침에 따라 '로'/'으로' (ㄹ 받침은 '로')
 function josaRo(w){const c=w.charCodeAt(w.length-1)-0xAC00;if(c<0||c>11171)return'로';const j=c%28;return j===0||j===8?'로':'으로';}
@@ -1735,8 +1736,14 @@ document.addEventListener('click',e=>{
 });
 renderSettings();
 show('home');
-// 오프라인 실행용 서비스 워커
-if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+// 오프라인 실행 + 자동 업데이트: 앱을 다시 볼 때마다 새 버전을 확인하고, 새 버전이 깔리면 바로 새로고침(기록은 저장돼 있어 그대로)
+if('serviceWorker' in navigator&&location.protocol.startsWith('http')){
+  const hadCtrl=!!navigator.serviceWorker.controller;let reloaded=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(hadCtrl&&!reloaded){reloaded=true;save();location.reload();}});
+  navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>{
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')reg.update().catch(()=>{});});
+  }).catch(()=>{});
+}
 </script>
 </body>
 </html>

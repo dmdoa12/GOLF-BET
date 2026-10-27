@@ -1,6 +1,6 @@
 // 골프 정산 서비스 워커: 한 번 열면 인터넷 없이도 실행되게 앱 파일을 저장해 둔다.
 // 앱을 고칠 때마다 VERSION을 올리면 다음 실행 때 새 파일로 바뀐다.
-const VERSION = 'golf-v22';
+const VERSION = 'golf-v23';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -21,7 +21,8 @@ self.addEventListener('fetch', e => {
   // 페이지: 인터넷 되면 최신 버전, 안 되면 저장해 둔 버전
   if (req.mode === 'navigate') {
     e.respondWith(
-      fetch(req)
+      // 휴대폰 브라우저 캐시를 거치지 않고 서버에 새 버전이 있는지 확인
+      fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' })
         .then(res => { const copy = res.clone(); caches.open(VERSION).then(c => c.put('./index.html', copy)); return res; })
         .catch(() => caches.match('./index.html'))
     );
