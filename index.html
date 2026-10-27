@@ -516,6 +516,43 @@ body.mini .tile{padding:4px 6px 5px}
 .sc-db{border:1.2px solid var(--red);background:var(--redbg);color:var(--red);font-weight:700}
 td .sc + small{margin-top:2px}
 
+/* ---- 라운드 용지 스코어카드 ---- */
+:root{--pc-paper:#fbf8ef;--pc-line:#d9d3c2;--pc-head:#1b4a33;--pc-sub:#eef0e2}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--pc-paper:#1a211d;--pc-line:#34443b;--pc-head:#21503a;--pc-sub:#202b25}}
+:root[data-theme="dark"]{--pc-paper:#1a211d;--pc-line:#34443b;--pc-head:#21503a;--pc-sub:#202b25}
+.paper{background:var(--pc-paper);border:1px solid var(--pc-line);border-radius:12px;box-shadow:var(--shadow);padding:10px 8px 12px}
+.pc-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:0 4px 6px;border-bottom:2px solid var(--pc-head)}
+.pc-top b{flex:none;font-size:13px;letter-spacing:.2em;color:var(--green)}
+.pc-top span{min-width:0;font-size:12px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+table.pc{width:100%;table-layout:fixed;border-collapse:collapse;margin-top:10px;font-size:13px;white-space:normal}
+.pc col.c-l{width:48px}.pc col.c-t{width:36px}.pc-sum col.c-m{width:64px}
+.pc th,.pc td{height:30px;padding:0 1px;text-align:center;vertical-align:middle;border:1px solid var(--pc-line);background:none;color:var(--ink);max-width:none;font-variant-numeric:tabular-nums}
+.pc thead th{height:26px;background:var(--pc-head);color:#fff;font-size:12px;font-weight:700;border-color:var(--pc-head)}
+.pc thead th.pc-h{cursor:pointer}
+.pc thead th.cur{background:var(--flag);color:#2a2000;border-color:var(--flag)}
+.pc .pc-l{text-align:left;padding-left:6px;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--mut)}
+.pc thead .pc-l{color:#fff}
+.pc .pc-nm{font-size:13px;color:var(--ink);letter-spacing:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc .pc-par td,.pc .pc-par th{background:var(--pc-sub);font-size:12px;height:24px}
+.pc .pc-ex td,.pc .pc-ex th{height:24px;font-size:11px}
+.pc .pc-ex small{font-size:9.5px;color:var(--mut)}
+.pc .pc-x{color:var(--flag);font-size:11px}
+.pc-dot{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;font-style:normal;font-size:10px;font-weight:700}
+.pc-dot.tr{background:var(--red);color:#fff}.pc-dot.tg{background:#2e9e5b;color:#fff}
+.pc td.cur{background:rgba(217,165,32,.13)}
+.pc .pc-t{background:var(--pc-sub);font-weight:700}
+.pc thead .pc-t{background:var(--pc-head)}
+.pc-pl td{height:34px}
+.pc .sc{min-width:20px;height:20px;font-size:13px;padding:0 1px}
+.pc td small{display:block;font-size:9px;line-height:1.1;letter-spacing:-.03em;margin-top:1px}
+.pc-sum thead th{font-size:11px}
+.pc-sum td{font-size:14px}
+.pc-sum td.pc-tt{font-weight:700}
+.pc-sum td.pc-tt.low{color:var(--green)}
+.pc-sum td.num{font-size:13px;font-weight:700}
+.pc td small{white-space:nowrap}
+@media (max-width:359px){.pc .pc-nm{font-size:11.5px;padding-left:3px;text-overflow:clip}.pc td small{font-size:8.5px;letter-spacing:-.05em}.pc col.c-l{width:42px}.pc col.c-t{width:30px}.pc .sc{min-width:18px;height:18px;font-size:12px}.pc-sum col.c-m{width:58px}}
+
 /* ---- 정산서(티켓) ---- */
 .receipt{position:relative;margin-top:10px;background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .receipt::before{content:"";display:block;height:4px;background:var(--green)}
@@ -572,7 +609,7 @@ td .sc + small{margin-top:2px}
 <div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button id="toastUndo" type="button">되돌리기</button></div>
 <script>
 const KEY='golf-bet-v1';
-const APP_VER='25';   // sw.js의 VERSION 숫자와 같게 올린다 (홈 화면 아래에 표시)
+const APP_VER='26';   // sw.js의 VERSION 숫자와 같게 올린다 (홈 화면 아래에 표시)
 const MAXP=4, DEF_N=4, DEF_NAMES=['A','B','C','D'];
 // 화면 테마: 이 휴대폰에만 기억 (자동 = 휴대폰 설정 따라감)
 const TKEY='golf-bet-theme';
@@ -828,6 +865,38 @@ function receiptHtml(o){
   </div>`;
 }
 // 스코어카드 표기:이글 이하 이중 원, 버디 원, 파 그대로, 보기 사각형, 더블보기 이상 붉은 사각형
+// 실제 라운드 용지 모양 스코어카드: 전반(1~9 · OUT) / 후반(10~18 · IN) 두 장 + 합계표
+// o: {sub(esc 완료), names, pars[18], scores[18][n](없으면 null), cur(지금 홀, 없으면 -1), rows[{label,cells[18]}], total[n], money[18][n]|null}
+function paperCard(o){
+  const n=o.names.length,ks=[...Array(n).keys()];
+  const sumOf=(k,a,b)=>{let s=0,any=false;for(let i=a;i<b;i++){const v=o.scores[i][k];if(v!=null){s+=v;any=true;}}return any?s:null;};
+  const parOf=(k,a,b)=>{let s=0;for(let i=a;i<b;i++)if(o.scores[i][k]!=null)s+=o.pars[i];return s;};
+  // 천원 단위. 칸이 좁아서 1만원 이상은 정수로 (정확한 금액은 홀 결과·정산에)
+  const kfmt=v=>{const t=Math.abs(v)>=10000?Math.round(v/1000):Math.round(v/100)/10;return t>0?'+'+t:String(t);};
+  const nine=s=>{
+    const idx=[...Array(9).keys()].map(j=>s+j),cc=i=>i===o.cur?' cur':'';
+    const pt=idx.reduce((a,i)=>a+o.pars[i],0);
+    return `<table class="pc"><colgroup><col class="c-l"><col span="9"><col class="c-t"></colgroup>
+      <thead><tr><th class="pc-l">HOLE</th>${idx.map(i=>`<th class="pc-h${cc(i)}"${o.cur>=0?` data-act="go" data-i="${i}" role="button" aria-label="${i+1}번 홀로"`:''}>${i+1}</th>`).join('')}<th class="pc-t">${s?'IN':'OUT'}</th></tr></thead>
+      <tbody>
+        <tr class="pc-par"><th class="pc-l">PAR</th>${idx.map(i=>`<td class="${cc(i)}">${o.pars[i]}</td>`).join('')}<td class="pc-t">${pt}</td></tr>
+        ${o.rows.map(r=>`<tr class="pc-ex"><th class="pc-l">${r.label}</th>${idx.map(i=>`<td class="${cc(i)}">${r.cells[i]||''}</td>`).join('')}<td class="pc-t"></td></tr>`).join('')}
+        ${ks.map(k=>{const t=sumOf(k,s,s+9);return `<tr class="pc-pl"><th class="pc-l pc-nm">${esc(o.names[k])}</th>${idx.map(i=>{const v=o.scores[i][k],m=o.money&&o.money[i]?o.money[i][k]:null;
+          return `<td class="${cc(i)}">${v==null?'':scMark(v,o.pars[i])}${m!=null?`<small class="${cls(m)}">${m?kfmt(m):'0'}</small>`:''}</td>`;}).join('')}<td class="pc-t">${t??''}</td></tr>`;}).join('')}
+      </tbody></table>`;
+  };
+  const tot=ks.map(k=>{const a=sumOf(k,0,9),b=sumOf(k,9,18),t=sumOf(k,0,18),d=t==null?null:t-parOf(k,0,18);return{a,b,t,d};});
+  const played=tot.filter(x=>x.t!=null),best=played.length?Math.min(...played.map(x=>x.t)):null;
+  return `<div class="paper">
+    <div class="pc-top"><b>SCORE CARD</b><span>${o.sub}</span></div>
+    ${nine(0)}${nine(9)}
+    <table class="pc pc-sum"><colgroup><col class="c-l"><col><col><col><col><col class="c-m"></colgroup>
+      <thead><tr><th class="pc-l">선수</th><th>OUT</th><th>IN</th><th>합계</th><th>±</th><th>정산</th></tr></thead>
+      <tbody>${ks.map(k=>{const x=tot[k];return `<tr class="pc-pl"><th class="pc-l pc-nm">${esc(o.names[k])}</th><td>${x.a??''}</td><td>${x.b??''}</td>
+        <td class="pc-tt${x.t!=null&&x.t===best?' low':''}">${x.t??''}</td><td>${x.d==null?'':x.d>0?'+'+x.d:x.d===0?'E':x.d}</td>
+        <td class="num ${cls(o.total[k])}">${sgn(o.total[k]).replace(/원$/,'')}</td></tr>`;}).join('')}</tbody></table>
+  </div>`;
+}
 function scMark(v,par){
   const d=v-par,c=d<=-2?'sc-e':d===-1?'sc-b':d===1?'sc-bo':d>=2?'sc-db':'';
   return `<span class="sc ${c}">${v}</span>`;
@@ -999,7 +1068,7 @@ document.getElementById('toastUndo').addEventListener('click',()=>{
   save();renderSettings();render();
 });
 
-let fixOpen=false,teeEdit=null,cardAll=false;
+let fixOpen=false,teeEdit=null,cardMoney=false;   // cardMoney: 스코어카드에 홀별 금액(천원) 표시
 const penOpen=new Set();      // 벌칙 버튼을 펼친 '홀-사람'
 let chipScroll=0,chipHole=-1;  // 홀 칩 가로 스크롤 위치, 마지막으로 가운데 맞춘 홀
 
@@ -1176,17 +1245,17 @@ function render(){
     </div>`;
   }
 
-  const lastHole=Math.max(c,...st.holes.map((x,i)=>confirmed(x)?i:-1));
-  const trs=rows.map((R,i)=>{
-    const x=st.holes[i];
-    if(!cardAll&&i>lastHole)return '';
-    return `<tr class="click ${i===c?'cur':''}" data-act="go" data-i="${i}"><td>${i+1}${isTeam()&&x.pair?`<small class="pr">${esc(N[0].slice(0,1))}${esc(N[x.pair].slice(0,1))}</small>`:''}</td><td>${x.par}</td>
-      ${isDraw()?`<td>${R.counted?(R.win<0?'<small>이월</small>':badge(x,R.win)):'-'}</td>`
-        :isSkins()?`<td>${R.counted?(R.skinW<0?'<small>이월</small>':`<small>${esc(N[R.skinW])}</small>`):'-'}</td>`:`<td class="num ${R.mult>=2?'m2':''}">${R.mult==null?'-':'×'+R.mult}</td>`}
-      ${ks.map(k=>`<td class="num">${x.s[k]==null?'-':scMark(x.s[k],x.par)}${R.counted?`<small class="${cls(R.net[k])}">${R.net[k]?sgn(R.net[k]).replace(/원$/,''):'0'}</small>`:''}</td>`).join('')}</tr>`;
-  }).join('');
-  const sum=(k)=>st.holes.reduce((a,x)=>a+(x.s[k]??0),0);
-  const parSum=st.holes.reduce((a,x)=>a+x.par,0);
+  // 실제 라운드 용지 같은 스코어카드: 계산됐거나 직접 넣은 스코어만 적는다 (지금 홀의 파 기본값은 비워 둠)
+  const cardScores=st.holes.map((x,i)=>ks.map(k=>x.s[k]!=null&&(rows[i].counted||x.t[k])?x.s[k]:null));
+  const ini=nm=>esc(String(nm).slice(0,1));
+  const extra=isDraw()?{label:'승',cells:rows.map((R,i)=>!R.counted?'':R.win<0?'<small>이월</small>':`<i class="pc-dot ${COLOR[tcol(st.holes[i],R.win)].cl}">${COLOR[tcol(st.holes[i],R.win)].nm.slice(0,1)}</i>`)}
+    :isSkins()?{label:'스킨',cells:rows.map(R=>!R.counted?'':R.skinW<0?'<small>이월</small>':`<b>${ini(N[R.skinW])}</b>`)}
+    :isHus()?{label:'후세인',cells:st.holes.map((x,i)=>x.hus>=0&&rows[i].mult!=null?ini(N[x.hus]):'')}
+    :null;
+  const multRow=!usePot()&&st.multOn?{label:'배수',cells:rows.map(R=>R.mult>=2?'<b class="pc-x">×2</b>':'')}:null;
+  const card=paperCard({sub:`${esc(M().name)}${st.courseName?` · ${esc(st.courseName)}`:''}`,names:N.slice(0,n),pars:st.holes.map(x=>x.par),
+    scores:cardScores,cur:c,rows:[extra,multRow].filter(Boolean),total,
+    money:cardMoney?rows.map(R=>R.counted?R.net:null):null});
 
   // 공금 벌금은 사람끼리 주고받는 돈이 아니므로 송금 계산에서 빼고 따로 보여준다
   const tf=transfers(usePot()?sideTot:total.map((v,k)=>v+potBy[k]));
@@ -1244,14 +1313,8 @@ function render(){
   <button class="ghostbtn copybtn" data-act="copyres">결과 글 복사 (카톡 공유용)</button>
 
   <h2>스코어카드</h2>
-  <div class="tbl"><table>
-    <thead><tr><th>홀</th><th>Par</th><th>${usePot()?'승':'배수'}</th>${ks.map(k=>`<th>${esc(N[k])}</th>`).join('')}</tr></thead>
-    <tbody>${trs}
-      <tr class="sum"><td>타수</td><td>${parSum}</td><td></td>${ks.map(k=>`<td class="num">${sum(k)||'-'}</td>`).join('')}</tr>
-      <tr class="sum"><td>정산</td><td></td><td></td>${ks.map(k=>`<td class="num ${cls(total[k])}">${sgn(total[k]).replace(/원$/,'')}</td>`).join('')}</tr>
-    </tbody>
-  </table></div>
-  ${lastHole<17?`<button class="ghostbtn cardmore" data-act="cardall">${cardAll?'친 홀까지만 보기':`남은 홀도 보기 (${17-lastHole}홀)`}</button>`:''}`;
+  ${card}
+  <button class="ghostbtn cardmore" data-act="cardmoney" aria-pressed="${cardMoney}">${cardMoney?'홀별 금액 숨기기':'홀별 금액 보기 (천원 단위)'}</button>`;
   setupChips(c);
   if(pendingAnim){pendingAnim=false;showDrawAnim(h,true);}
 }
@@ -1673,11 +1736,7 @@ function renderHist(){
   ${rec.stats?`<div class="hsec">라운드 요약</div>${statsHtml(rec.names,rec.stats)}`:''}
   <button class="ghostbtn copybtn" data-act="copyrec" data-id="${esc(rec.id)}">결과 글 복사 (카톡 공유용)</button>
   <div class="hsec">스코어카드</div>
-  <div class="tbl"><table>
-    <thead><tr><th>홀</th><th>Par</th>${rec.names.map(nm=>`<th>${esc(nm)}</th>`).join('')}</tr></thead>
-    <tbody>${rec.pars.map((par,i)=>`<tr><td>${i+1}</td><td>${par}</td>${rec.names.map((_,k)=>`<td class="num">${rec.scores[i][k]==null?'-':scMark(rec.scores[i][k],par)}</td>`).join('')}</tr>`).join('')}
-      <tr class="sum"><td>합계</td><td>${rec.pars.reduce((a,b)=>a+b,0)}</td>${rec.names.map((_,k)=>`<td class="num">${rec.scores.reduce((a,x)=>a+(x[k]??0),0)||'-'}</td>`).join('')}</tr>
-    </tbody></table></div>
+  ${paperCard({sub:`${esc(rec.label)} · ${esc(md.name)}${cname?` · ${esc(cname)}`:''}`,names:rec.names,pars:rec.pars,scores:rec.scores,cur:-1,rows:[],total:rec.total,money:null})}
   <button class="danger delbtn" data-act="delrec" data-id="${esc(rec.id)}">이 기록 삭제</button>`;
 }
 
@@ -1998,7 +2057,7 @@ const ACTIONS={
   copyres:onHistory, copyrec:onHistory, delrec:onHistory,
   newgame:onRoundFlow, pickmode:onRoundFlow, startmode:onRoundFlow, startgame:onRoundFlow, endround:onRoundFlow,
   clearhole:onClearHole,
-  cardall:()=>{cardAll=!cardAll;render();},
+  cardmoney:()=>{cardMoney=!cardMoney;render();},
 };
 // 스코어·벌칙·보너스·편을 건드리면 그 홀은 확정(계산에 넣음)
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&pickerOpen())closePicker();});
