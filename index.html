@@ -622,7 +622,7 @@ table.pc{width:100%;table-layout:fixed;border-collapse:collapse;margin-top:10px;
 <div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button id="toastUndo" type="button">되돌리기</button></div>
 <script>
 const KEY='golf-bet-v1';
-const APP_VER='28';   // sw.js의 VERSION 숫자와 같게 올린다 (홈 화면 아래에 표시)
+const APP_VER='29';   // sw.js의 VERSION 숫자와 같게 올린다 (홈 화면 아래에 표시)
 const MAXP=4, DEF_N=4, DEF_NAMES=['A','B','C','D'];
 // 화면 테마: 이 휴대폰에만 기억 (자동 = 휴대폰 설정 따라감)
 const TKEY='golf-bet-theme';
@@ -634,6 +634,8 @@ function setTheme(v){
 // 배판 조건 (설정). 기본은 예전 그대로 버디 이하·더블파. 저장본을 불러올 때(normalize)도 쓰이므로 위쪽에 둔다
 const MULT_DEF={birdie:true,dbl:true,triple:false,tie3:false};
 const MULT_NAME={birdie:'버디 이하',dbl:'더블파(양파)',triple:'트리플보기 이상',tie3:'3명 이상 동타'};
+// 동타 배판은 인원에 따라: 2명이면 둘이 같은 타수, 3~4명이면 3명 이상 같은 타수 (4명 중 2명 동타는 너무 흔해서 제외)
+const ruleName=k=>k==='tie3'&&st.n===2?'둘이 동타(비김)':MULT_NAME[k];
 // 코스: 골프장 데이터 없이 사용자가 홀별 파를 직접 넣는다. 코스 이름과 파는 다음 라운드에도 이어 쓴다.
 const STD_PARS=[4,4,3,4,5,4,3,4,5, 4,3,4,5,4,4,3,5,4];
 // 예전 기록의 코스 이름
@@ -1016,7 +1018,7 @@ function compute(final){
       else if(mr.triple&&sc>=h.par+3)why.push(nm+' 트리플 이상');
       if(mr.birdie&&sc<=h.par-1)why.push(nm+' '+(sc<=h.par-2?'이글':'버디'));
     });
-    if(mr.tie3&&n>=3){const cnt={};ks.forEach(k=>cnt[h.s[k]]=(cnt[h.s[k]]||0)+1);const mx=Math.max(...Object.values(cnt));if(mx>=3)why.push(mx+'명 동타');}
+    if(mr.tie3){const cnt={};ks.forEach(k=>cnt[h.s[k]]=(cnt[h.s[k]]||0)+1);const mx=Math.max(...Object.values(cnt));if(n===2?mx===2:mx>=3)why.push(n===2?'동타(비김)':mx+'명 동타');}
     const next=usePot()||!st.multOn?1:(why.length?2:1);   // 배판 없음 설정이면 항상 ×1
     r.why=why;r.next=next;r.counted=true;
     ks.forEach(k=>{
@@ -1486,7 +1488,7 @@ function renderSettings(){
       <div class="psum">${st.jokerScore==='best'?'조커를 뽑은 사람은 그 홀에서 네 명 중 가장 적게 친 타수로 계산합니다.':`조커를 뽑은 사람은 실제 타수와 상관없이 ${jokerName()}로 계산합니다.`}</div>`:''}
       ${pot?'':`<div class="sec-h">배판</div>
       <div class="seg" style="--k:2"><button type="button" class="${st.multOn?'on':''}" data-act="multon" data-v2="1">배판 있음</button><button type="button" class="${!st.multOn?'on':''}" data-act="multon" data-v2="0">배판 없음</button></div>
-      ${st.multOn?`<div class="chkgrid">${Object.keys(MULT_DEF).map(k=>`<button type="button" class="chk ${st.multRules[k]?'on':''}" data-act="multrule" data-v2="${k}" aria-pressed="${!!st.multRules[k]}"><i aria-hidden="true"></i>${MULT_NAME[k]}</button>`).join('')}</div>`:''}
+      ${st.multOn?`<div class="chkgrid">${Object.keys(MULT_DEF).map(k=>`<button type="button" class="chk ${st.multRules[k]?'on':''}" data-act="multrule" data-v2="${k}" aria-pressed="${!!st.multRules[k]}"><i aria-hidden="true"></i>${ruleName(k)}</button>`).join('')}</div>`:''}
       <div class="psum">${st.multOn?multDesc():'모든 홀을 같은 금액(×1)으로 계산합니다.'}</div>`}
       <div class="sec-h">금액</div>
       <div class="two">
@@ -1592,7 +1594,7 @@ function hcpSummary(){
 }
 // 켠 배판 조건을 한 문장으로
 function multDesc(){
-  const on=Object.keys(MULT_DEF).filter(k=>st.multRules[k]).map(k=>MULT_NAME[k]);
+  const on=Object.keys(MULT_DEF).filter(k=>st.multRules[k]).map(k=>ruleName(k));
   return on.length?`${on.join(' · ')}${on.length>1?' 중 하나라도':''} 나오면 다음 홀은 ×2 배판입니다.`:'배판 조건이 모두 꺼져 있어 모든 홀을 ×1로 계산합니다.';
 }
 const MODE_RULES={
